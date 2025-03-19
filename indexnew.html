@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Previous head content remains the same until the select options -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Compass</title>
+    <style>
+        /* All existing styles remain the same */
+        .hidden {
+            display: none;
+        }
+        /* ... rest of the existing styles ... */
+    </style>
+</head>
+<body>
+    <div class="post-form-container">
+        <h2>Content Compass</h2>
+        <div class="form-group">
+            <label>Select the Content Database*</label>
+            <select class="form-control" id="postType">
+                <option value="" disabled selected>Select Database</option>
+                <option value="square-help">Square Help</option>
+                <option value="square-help-auto">Square help auto edit</option>
+                <option value="squarewise">Google Drive</option>
+                <option value="high-spot">High Spot</option>
+            </select>
+        </div>
+
+        <!-- Google Drive Section -->
+        <div id="googleDriveSection" class="hidden">
+            <div class="form-group">
+                <label>Search Your Topic</label>
+                <input type="text" class="form-control" id="searchTopicDrive" placeholder="Enter your search topic">
+                <button class="search-button" id="searchButtonDrive">Search</button>
+            </div>
+            <div id="searchResultsDrive" class="search-results"></div>
+        </div>
+
+        <!-- Square Help Section -->
+        <div id="squareHelpSection" class="hidden">
+            <div class="form-group">
+                <label>Search Your Topic</label>
+                <input type="text" class="form-control" id="searchTopicSquare" placeholder="Enter your search topic">
+                <button class="search-button" id="searchButtonSquare">Search</button>
+            </div>
+            <div id="searchResultsSquare" class="search-results"></div>
+        </div>
+
+        <!-- Square Help Auto Edit Section -->
+        <div id="squareHelpAutoSection" class="hidden">
+            <div class="form-group">
+                <label>Search Your Topic</label>
+                <input type="text" class="form-control" id="searchTopicSquareAuto" placeholder="Enter your search topic">
+                <button class="search-button" id="searchButtonSquareAuto">Search</button>
+            </div>
+            <div id="searchResultsSquareAuto" class="search-results"></div>
+        </div>
+
+        <!-- High Spot Section -->
+        <div id="highSpotSection" class="hidden">
+            <div class="form-group">
+                <label>Search Your Topic</label>
+                <input type="text" class="form-control" id="searchTopicHighSpot" placeholder="Enter your search topic">
+                <button class="search-button" id="searchButtonHighSpot">Search</button>
+            </div>
+            <div id="searchResultsHighSpot" class="search-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Square Help content data remains the same
+        const squareHelpContent = {
+            articles: [
+                // ... existing articles array remains the same ...
+            ]
+        };
+
+        // Create a copy of squareHelpContent for the auto edit version
+        const squareHelpAutoContent = JSON.parse(JSON.stringify(squareHelpContent));
+
+        // All existing functions remain the same
+        function compareContent(sectionTitle) {
+            // ... existing function implementation ...
+        }
+
+        function saveContent(sectionTitle) {
+            // ... existing function implementation ...
+        }
+
+        function exportContent(sectionTitle) {
+            // ... existing function implementation ...
+        }
+
+        function handleSquareHelpSearch(searchQuery, resultsDiv, contentSource = squareHelpContent) {
+            if (!searchQuery) {
+                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
+
+            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
+            const searchResults = [];
+
+            contentSource.articles.forEach(article => {
+                const matches = searchTerms.every(term => 
+                    article.content.toLowerCase().includes(term)
+                );
+
+                if (matches) {
+                    searchResults.push({
+                        title: article.title,
+                        fullContent: article.content,
+                        type: article.type
+                    });
+                }
+            });
+
+            if (searchResults.length > 0) {
+                const resultsHTML = `
+                    <h3>Search Results from Square Risk Manager Guide</h3>
+                    <div class="search-summary">Found ${searchResults.length} matching section${searchResults.length === 1 ? '' : 's'}</div>
+                    <div style="max-height: 600px; overflow-y: auto;">
+                        ${searchResults.map(result => {
+                            let highlightedContent = result.fullContent;
+                            searchTerms.forEach(term => {
+                                const regex = new RegExp(`(${term})`, 'gi');
+                                highlightedContent = highlightedContent.replace(regex, '<span class="search-term-highlight">$1</span>');
+                            });
+                            
+                            const safeTitle = result.title.replace(/'/g, "\\'");
+                            const safeTitleId = result.title.replace(/[^a-zA-Z0-9]/g, '-');
+                            
+                            return `
+                                <div class="result-item">
+                                    <div class="result-section">${result.title}</div>
+                                    <div class="result-content-wrapper">
+                                        <div class="editable-content" contenteditable="true" data-section="${result.title}">${highlightedContent}</div>
+                                        <div class="result-type">${result.type}</div>
+                                        <div class="result-actions">
+                                            <button class="save-button" onclick="saveContent('${safeTitle}')">Save Changes</button>
+                                            <button class="export-button" onclick="exportContent('${safeTitle}')">Export to Text</button>
+                                            <button class="compare-button" onclick="compareContent('${safeTitle}')">Compare</button>
+                                            <span class="save-status" id="save-status-${safeTitleId}">Changes saved!</span>
+                                        </div>
+                                        <div class="comparison-view" id="comparison-${safeTitleId}">
+                                            <div class="comparison-column">
+                                                <h4>Original Version</h4>
+                                                <div class="comparison-content original-version">${result.fullContent}</div>
+                                            </div>
+                                            <div class="comparison-column">
+                                                <h4>Edited Version</h4>
+                                                <div class="comparison-content edited-version" id="edited-${safeTitleId}">${result.fullContent}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                resultsDiv.innerHTML = resultsHTML;
+
+                document.querySelectorAll('.editable-content').forEach(div => {
+                    div.addEventListener('input', () => {
+                        const title = div.dataset.section;
+                        const articleIndex = contentSource.articles.findIndex(a => a.title === title);
+                        if (articleIndex !== -1) {
+                            contentSource.articles[articleIndex].content = div.innerText;
+                        }
+                    });
+                });
+            } else {
+                resultsDiv.innerHTML = '<div class="no-results">No matching content found in the Square Risk Manager guide.</div>';
+            }
+        }
+
+        document.getElementById('postType').addEventListener('change', function() {
+            const googleDriveSection = document.getElementById('googleDriveSection');
+            const squareHelpSection = document.getElementById('squareHelpSection');
+            const squareHelpAutoSection = document.getElementById('squareHelpAutoSection');
+            const highSpotSection = document.getElementById('highSpotSection');
+            
+            googleDriveSection.classList.add('hidden');
+            squareHelpSection.classList.add('hidden');
+            squareHelpAutoSection.classList.add('hidden');
+            highSpotSection.classList.add('hidden');
+            
+            switch(this.value) {
+                case 'squarewise':
+                    googleDriveSection.classList.remove('hidden');
+                    break;
+                case 'square-help':
+                    squareHelpSection.classList.remove('hidden');
+                    break;
+                case 'square-help-auto':
+                    squareHelpAutoSection.classList.remove('hidden');
+                    break;
+                case 'high-spot':
+                    highSpotSection.classList.remove('hidden');
+                    break;
+            }
+        });
+
+        document.getElementById('searchButtonDrive').addEventListener('click', () => {
+            handleSearch('searchTopicDrive', 'searchResultsDrive', 'http://localhost:5000/googledrive/search');
+        });
+
+        document.getElementById('searchButtonSquare').addEventListener('click', () => {
+            const searchQuery = document.getElementById('searchTopicSquare').value.trim();
+            const resultsDiv = document.getElementById('searchResultsSquare');
+            handleSquareHelpSearch(searchQuery, resultsDiv, squareHelpContent);
+        });
+
+        document.getElementById('searchButtonSquareAuto').addEventListener('click', () => {
+            const searchQuery = document.getElementById('searchTopicSquareAuto').value.trim();
+            const resultsDiv = document.getElementById('searchResultsSquareAuto');
+            handleSquareHelpSearch(searchQuery, resultsDiv, squareHelpAutoContent);
+        });
+
+        document.getElementById('searchButtonHighSpot').addEventListener('click', () => {
+            handleSearch('searchTopicHighSpot', 'searchResultsHighSpot', 'http://localhost:5000/highspot/search');
+        });
+    </script>
+</body>
+</html>
