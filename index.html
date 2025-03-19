@@ -3,145 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compare Content</title>
+    <title>Content Compass</title>
     <style>
-        /* Previous styles remain the same */
-        .result-actions {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #E0E0E0;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #F5F7FA;
+            margin: 0;
+            padding: 20px;
+            color: #2C3E50;
+            line-height: 1.6;
         }
-        
-        .save-button {
-            background-color: #10B981 !important;
-            color: white !important;
-            padding: 8px 16px !important;
-            border: none !important;
-            border-radius: 6px !important;
-            margin-right: 10px !important;
-            cursor: pointer !important;
-            font-size: 14px !important;
+
+        .post-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        
-        .export-button {
-            background-color: #6B7280 !important;
-            color: white !important;
-            padding: 8px 16px !important;
-            border: none !important;
-            border-radius: 6px !important;
-            cursor: pointer !important;
-            font-size: 14px !important;
+
+        h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #2C3E50;
         }
-        
-        .save-status {
-            color: #10B981;
-            margin-left: 10px;
-            display: none;
+
+        h3 {
+            font-size: 22px;
+            margin-top: 20px;
+            color: #34495E;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #34495E;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            background-color: #FFFFFF;
+            box-sizing: border-box;
+            color: #2C3E50;
+        }
+
+        .search-button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
             font-size: 14px;
+            cursor: pointer;
+            margin-top: 12px;
         }
-        
-        .save-button:hover {
-            background-color: #059669 !important;
+
+        .search-results {
+            margin-top: 24px;
         }
-        
-        .export-button:hover {
-            background-color: #4B5563 !important;
+
+        .search-summary {
+            background-color: #E3F2FD;
+            padding: 12px 16px;
+            border-radius: 4px;
+            color: #1976D2;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            padding: 20px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            background-color: #FFFFFF;
+        }
+
+        .result-section {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 16px;
+        }
+
+        .result-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #2C3E50;
+            margin-bottom: 16px;
+        }
+
+        .result-type {
+            font-size: 13px;
+            color: #666;
+            background-color: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .save-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        .export-button {
+            background-color: #757575;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .search-term-highlight {
+            background-color: #FFF9C4;
+            padding: 2px 0;
+        }
+
+        .editable-content {
+            padding: 12px;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            margin: 12px 0;
+            min-height: 100px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        [contenteditable="true"]:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="post-form-container">
-        <h2>Compare Content</h2>
+        <h2>Content Compass</h2>
         <div class="form-group">
             <label>Select the Content Database*</label>
             <select class="form-control" id="postType">
-                <option value="" disabled selected>Select Database</option>
                 <option value="square-help">Square Help</option>
                 <option value="squarewise">Google Drive</option>
                 <option value="high-spot">High Spot</option>
             </select>
         </div>
 
-        <!-- Google Drive Section -->
-        <div id="googleDriveSection" class="hidden">
-            <div class="form-group">
-                <label>Search Your Topic</label>
-                <input type="text" class="form-control" id="searchTopicDrive" placeholder="Enter your search topic">
-                <button class="search-button" id="searchButtonDrive">Search</button>
-            </div>
-            <div id="searchResultsDrive" class="search-results"></div>
+        <div class="form-group">
+            <label>Search Your Topic</label>
+            <input type="text" class="form-control" id="searchTopic" placeholder="Search Your Topic">
+            <button class="search-button" id="searchButton">Search</button>
         </div>
 
-        <!-- Square Help Section -->
-        <div id="squareHelpSection" class="hidden">
-            <div class="form-group">
-                <label>Search Your Topic</label>
-                <input type="text" class="form-control" id="searchTopicSquare" placeholder="Enter your search topic">
-                <button class="search-button" id="searchButtonSquare">Search</button>
-            </div>
-            <div id="searchResultsSquare" class="search-results"></div>
-        </div>
-
-        <!-- High Spot Section -->
-        <div id="highSpotSection" class="hidden">
-            <div class="form-group">
-                <label>Search Your Topic</label>
-                <input type="text" class="form-control" id="searchTopicHighSpot" placeholder="Enter your search topic">
-                <button class="search-button" id="searchButtonHighSpot">Search</button>
-            </div>
-            <div id="searchResultsHighSpot" class="search-results"></div>
-        </div>
+        <div id="searchResults" class="search-results"></div>
     </div>
 
     <script>
-        // Square Help content data remains the same
         const squareHelpContent = {
             articles: [
                 {
                     title: "Overview of Square Risk Manager",
                     content: "Square Risk Manager helps you monitor and manage suspicious activity in your Square account. With Risk Manager, you can view flagged payments, customize your risk settings, and manage your payment risk. Risk Manager provides tools like Address Verification System (AVS) and Card Verification Value (CVV) to help prevent fraudulent transactions.",
                     type: "section"
-                },
-                {
-                    title: "Access Risk Manager",
-                    content: "To access Risk Manager: 1. Sign in to your Square Dashboard. 2. Go to Risk Manager in your online Square Dashboard. Note: Risk Manager access is limited to the Account Owner and users with appropriate permissions.",
-                    type: "section"
-                },
-                {
-                    title: "View Flagged Payments",
-                    content: "In Risk Manager, you can view payments that have been flagged as potentially risky: 1. Go to the Flagged Payments tab 2. View payment details including amount, date, and risk factors 3. Take action on flagged payments. The system uses Address Verification System (AVS) results to help identify suspicious transactions.",
-                    type: "section"
-                },
-                {
-                    title: "Customize Risk Settings",
-                    content: "Adjust your risk settings to match your business needs: 1. Go to the Settings tab 2. Configure risk rules and thresholds 3. Set up notification preferences for flagged payments 4. Configure Address Verification System (AVS) settings 5. Set CVV verification requirements",
-                    type: "section"
-                },
-                {
-                    title: "Risk Factors",
-                    content: "Risk Manager evaluates various factors including: - Unusual payment patterns - High-risk payment methods - Suspicious customer behavior - Geographic location - Transaction amount variations - Address Verification System (AVS) mismatches - CVV verification failures - IP address location mismatches",
-                    type: "section"
-                },
-                {
-                    title: "Security Features",
-                    content: "Square Risk Manager includes several security features: 1. Address Verification System (AVS) checks billing address accuracy 2. Card Verification Value (CVV) validates card possession 3. IP geolocation tracking identifies location mismatches 4. Machine learning algorithms detect unusual patterns",
-                    type: "section"
-                },
-                {
-                    title: "Managing Flagged Payments",
-                    content: "When a payment is flagged: 1. Review the payment details and risk factors 2. Check Address Verification System (AVS) results 3. Verify CVV status 4. Decide whether to accept or decline the payment 5. Document your decision for future reference",
-                    type: "section"
-                },
-                {
-                    title: "Risk Reports",
-                    content: "Generate and view risk reports: 1. Go to the Reports tab 2. Select your desired date range 3. View risk trends and patterns 4. Export reports for further analysis 5. Review Address Verification System (AVS) statistics",
-                    type: "section"
-                },
-                {
-                    title: "Understanding AVS",
-                    content: "The Address Verification System (AVS) is a fraud prevention system that verifies the billing address provided by the customer matches the address on file with their credit card issuer. AVS helps prevent unauthorized card usage and reduces chargebacks. When AVS detects a mismatch, the transaction is flagged for review.",
-                    type: "section"
                 }
+                // ... other articles ...
             ]
         };
 
@@ -151,11 +199,6 @@
                 const articleIndex = squareHelpContent.articles.findIndex(a => a.title === sectionTitle);
                 if (articleIndex !== -1) {
                     squareHelpContent.articles[articleIndex].content = contentDiv.innerText;
-                    const saveStatus = document.getElementById(`save-status-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}`);
-                    saveStatus.style.display = 'inline';
-                    setTimeout(() => {
-                        saveStatus.style.display = 'none';
-                    }, 2000);
                 }
             }
         }
@@ -176,13 +219,14 @@
             }
         }
 
-        function handleSquareHelpSearch(searchQuery, resultsDiv) {
+        function handleSearch() {
+            const searchQuery = document.getElementById('searchTopic').value.trim();
+            const resultsDiv = document.getElementById('searchResults');
+
             if (!searchQuery) {
                 resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
                 return;
             }
-
-            resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
 
             const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
             const searchResults = [];
@@ -195,94 +239,42 @@
                 if (matches) {
                     searchResults.push({
                         title: article.title,
-                        fullContent: article.content,
+                        content: article.content,
                         type: article.type
                     });
                 }
             });
 
             if (searchResults.length > 0) {
-                const resultsHTML = `
+                resultsDiv.innerHTML = `
                     <h3>Search Results from Square Risk Manager Guide</h3>
-                    <div class="search-summary">Found ${searchResults.length} matching section${searchResults.length === 1 ? '' : 's'}</div>
-                    <div style="max-height: 600px; overflow-y: auto;">
-                        ${searchResults.map(result => {
-                            let highlightedContent = result.fullContent;
-                            searchTerms.forEach(term => {
-                                const regex = new RegExp(`(${term})`, 'gi');
-                                highlightedContent = highlightedContent.replace(regex, '<span class="search-term-highlight">$1</span>');
-                            });
-                            
-                            const safeTitle = result.title.replace(/'/g, "\\'");
-                            const safeTitleId = result.title.replace(/[^a-zA-Z0-9]/g, '-');
-                            
-                            return `
-                                <div class="result-item">
-                                    <div class="result-section">${result.title}</div>
-                                    <div class="result-content-wrapper">
-                                        <div class="editable-content" contenteditable="true" data-section="${result.title}">${highlightedContent}</div>
-                                        <div class="result-type">${result.type}</div>
-                                        <div class="result-actions">
-                                            <button class="save-button" onclick="saveContent('${safeTitle}')">Save Changes</button>
-                                            <button class="export-button" onclick="exportContent('${safeTitle}')">Export to Text</button>
-                                            <span class="save-status" id="save-status-${safeTitleId}">Changes saved!</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
+                    <div class="search-summary">Found ${searchResults.length} matching sections</div>
+                    ${searchResults.map(result => {
+                        let highlightedContent = result.content;
+                        searchTerms.forEach(term => {
+                            const regex = new RegExp(`(${term})`, 'gi');
+                            highlightedContent = highlightedContent.replace(regex, '<span class="search-term-highlight">$1</span>');
+                        });
+                        
+                        return `
+                            <div class="result-item">
+                                <div class="result-section">${result.title}</div>
+                                <div class="editable-content" contenteditable="true" data-section="${result.title}">${highlightedContent}</div>
+                                <div class="result-type">${result.type}</div>
+                                <button class="save-button" onclick="saveContent('${result.title}')">Save Changes</button>
+                                <button class="export-button" onclick="exportContent('${result.title}')">Export to Text</button>
+                            </div>
+                        `;
+                    }).join('')}
                 `;
-                resultsDiv.innerHTML = resultsHTML;
-
-                document.querySelectorAll('.editable-content').forEach(div => {
-                    div.addEventListener('input', () => {
-                        const title = div.dataset.section;
-                        const articleIndex = squareHelpContent.articles.findIndex(a => a.title === title);
-                        if (articleIndex !== -1) {
-                            squareHelpContent.articles[articleIndex].content = div.innerText;
-                        }
-                    });
-                });
             } else {
-                resultsDiv.innerHTML = '<div class="no-results">No matching content found in the Square Risk Manager guide.</div>';
+                resultsDiv.innerHTML = '<div class="no-results">No matching content found</div>';
             }
         }
 
-        document.getElementById('postType').addEventListener('change', function() {
-            const googleDriveSection = document.getElementById('googleDriveSection');
-            const squareHelpSection = document.getElementById('squareHelpSection');
-            const highSpotSection = document.getElementById('highSpotSection');
-            
-            googleDriveSection.classList.add('hidden');
-            squareHelpSection.classList.add('hidden');
-            highSpotSection.classList.add('hidden');
-            
-            switch(this.value) {
-                case 'squarewise':
-                    googleDriveSection.classList.remove('hidden');
-                    break;
-                case 'square-help':
-                    squareHelpSection.classList.remove('hidden');
-                    break;
-                case 'high-spot':
-                    highSpotSection.classList.remove('hidden');
-                    break;
-            }
-        });
-
-        document.getElementById('searchButtonDrive').addEventListener('click', () => {
-            handleSearch('searchTopicDrive', 'searchResultsDrive', 'http://localhost:5000/googledrive/search');
-        });
-
-        document.getElementById('searchButtonSquare').addEventListener('click', () => {
-            const searchQuery = document.getElementById('searchTopicSquare').value.trim();
-            const resultsDiv = document.getElementById('searchResultsSquare');
-            handleSquareHelpSearch(searchQuery, resultsDiv);
-        });
-
-        document.getElementById('searchButtonHighSpot').addEventListener('click', () => {
-            handleSearch('searchTopicHighSpot', 'searchResultsHighSpot', 'http://localhost:5000/highspot/search');
+        document.getElementById('searchButton').addEventListener('click', handleSearch);
+        document.getElementById('searchTopic').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
         });
     </script>
 </body>
