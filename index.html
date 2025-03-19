@@ -218,9 +218,7 @@
             margin-top: 16px;
         }
 
-        .save-button {
-            background-color: #10B981;
-            color: white;
+        .save-button, .export-button, .compare-button {
             border: none;
             border-radius: 6px;
             padding: 8px 16px;
@@ -228,6 +226,11 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
+        }
+
+        .save-button {
+            background-color: #10B981;
+            color: white;
         }
 
         .save-button:hover {
@@ -238,18 +241,63 @@
         .export-button {
             background-color: #6B7280;
             color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
         }
 
         .export-button:hover {
             background-color: #4B5563;
             transform: translateY(-1px);
+        }
+
+        .compare-button {
+            background-color: #3B82F6;
+            color: white;
+        }
+
+        .compare-button:hover {
+            background-color: #2563EB;
+            transform: translateY(-1px);
+        }
+
+        .comparison-view {
+            display: none;
+            margin-top: 16px;
+            gap: 16px;
+            border-top: 1px solid #E0E0E0;
+            padding-top: 16px;
+        }
+
+        .comparison-view.visible {
+            display: flex;
+        }
+
+        .comparison-column {
+            flex: 1;
+            padding: 16px;
+            border-radius: 8px;
+            background-color: #F8FAFC;
+            border: 1px solid #E0E0E0;
+        }
+
+        .comparison-column h4 {
+            margin: 0 0 12px 0;
+            color: #2C3E50;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .comparison-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #2C3E50;
+            white-space: pre-wrap;
+        }
+
+        .original-version {
+            background-color: #FFF9C4;
+        }
+
+        .edited-version {
+            background-color: #E8F5E9;
         }
 
         .save-status {
@@ -380,6 +428,25 @@
             ]
         };
 
+        function compareContent(sectionTitle) {
+            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
+            const comparisonView = document.getElementById(`comparison-${safeTitleId}`);
+            const editedContent = document.getElementById(`edited-${safeTitleId}`);
+            const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
+            
+            if (comparisonView && editedContent && contentDiv) {
+                // Update edited version with current content
+                editedContent.textContent = contentDiv.innerText;
+                
+                // Toggle comparison view
+                if (comparisonView.classList.contains('visible')) {
+                    comparisonView.classList.remove('visible');
+                } else {
+                    comparisonView.classList.add('visible');
+                }
+            }
+        }
+
         function saveContent(sectionTitle) {
             const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
             if (contentDiv) {
@@ -460,7 +527,18 @@
                                         <div class="result-actions">
                                             <button class="save-button" onclick="saveContent('${safeTitle}')">Save Changes</button>
                                             <button class="export-button" onclick="exportContent('${safeTitle}')">Export to Text</button>
+                                            <button class="compare-button" onclick="compareContent('${safeTitle}')">Compare</button>
                                             <span class="save-status" id="save-status-${safeTitleId}">Changes saved!</span>
+                                        </div>
+                                        <div class="comparison-view" id="comparison-${safeTitleId}">
+                                            <div class="comparison-column">
+                                                <h4>Original Version</h4>
+                                                <div class="comparison-content original-version">${result.fullContent}</div>
+                                            </div>
+                                            <div class="comparison-column">
+                                                <h4>Edited Version</h4>
+                                                <div class="comparison-content edited-version" id="edited-${safeTitleId}">${result.fullContent}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
