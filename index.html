@@ -148,56 +148,68 @@
         <div id="googleDriveSection" class="hidden">
             <div class="form-group">
                 <label>Search Your Topic</label>
-                <input type="text" class="form-control" id="searchTopic" placeholder="Enter your search topic">
-                <button class="search-button" id="searchButton">Search</button>
+                <input type="text" class="form-control" id="searchTopicDrive" placeholder="Enter your search topic">
+                <button class="search-button" id="searchButtonDrive">Search</button>
             </div>
-            <div id="searchResults" class="search-results">
+            <div id="searchResultsDrive" class="search-results">
                 <!-- Search results will be displayed here -->
             </div>
         </div>
 
-        <!-- Other Content Sections -->
-        <div id="contentSections" class="hidden">
-            <!-- Existing Content Section -->
+        <!-- Square Help Section -->
+        <div id="squareHelpSection" class="hidden">
             <div class="form-group">
-                <label>Existing Content</label>
-                <div class="input-group">
-                    <input type="url" class="form-control" placeholder="Paste a link here" id="existingLinkInput">
-                </div>
+                <label>Search Your Topic</label>
+                <input type="text" class="form-control" id="searchTopicSquare" placeholder="Enter your search topic">
+                <button class="search-button" id="searchButtonSquare">Search</button>
             </div>
+            <div id="searchResultsSquare" class="search-results">
+                <!-- Search results will be displayed here -->
+            </div>
+        </div>
 
-            <!-- New Content Section -->
+        <!-- High Spot Section -->
+        <div id="highSpotSection" class="hidden">
             <div class="form-group">
-                <label>New Content to Assess</label>
-                <div class="input-group">
-                    <input type="url" class="form-control" placeholder="Paste a link here" id="newLinkInput">
-                </div>
+                <label>Search Your Topic</label>
+                <input type="text" class="form-control" id="searchTopicHighSpot" placeholder="Enter your search topic">
+                <button class="search-button" id="searchButtonHighSpot">Search</button>
+            </div>
+            <div id="searchResultsHighSpot" class="search-results">
+                <!-- Search results will be displayed here -->
             </div>
         </div>
     </div>
 
     <script>
         document.getElementById('postType').addEventListener('change', function() {
-            const contentSections = document.getElementById('contentSections');
             const googleDriveSection = document.getElementById('googleDriveSection');
+            const squareHelpSection = document.getElementById('squareHelpSection');
+            const highSpotSection = document.getElementById('highSpotSection');
             
-            // Hide both sections first
-            contentSections.classList.add('hidden');
+            // Hide all sections first
             googleDriveSection.classList.add('hidden');
+            squareHelpSection.classList.add('hidden');
+            highSpotSection.classList.add('hidden');
             
-            if (this.value === 'squarewise') {
-                // Show Google Drive search section
-                googleDriveSection.classList.remove('hidden');
-            } else if (this.value) {
-                // Show regular content sections for other options
-                contentSections.classList.remove('hidden');
+            // Show the selected section
+            switch(this.value) {
+                case 'squarewise':
+                    googleDriveSection.classList.remove('hidden');
+                    break;
+                case 'square-help':
+                    squareHelpSection.classList.remove('hidden');
+                    break;
+                case 'high-spot':
+                    highSpotSection.classList.remove('hidden');
+                    break;
             }
         });
 
-        // Add search button functionality
-        document.getElementById('searchButton').addEventListener('click', async function() {
-            const searchQuery = document.getElementById('searchTopic').value.trim();
-            const resultsDiv = document.getElementById('searchResults');
+        // Function to handle search for any section
+        function handleSearch(searchId, resultsId, apiEndpoint) {
+            const searchQuery = document.getElementById(searchId).value.trim();
+            const resultsDiv = document.getElementById(resultsId);
             
             if (!searchQuery) {
                 resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
@@ -208,31 +220,30 @@
             resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
 
             // Send the search query to the backend
-            try {
-                const response = await fetch('http://localhost:5000/googledrive/search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: searchQuery })
-                });
-
+            fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: searchQuery })
+            })
+            .then(response => {
                 if (!response.ok) {
                     throw new Error('Search request failed');
                 }
-
-                const data = await response.json();
-
+                return response.json();
+            })
+            .then(data => {
                 if (data && data.length > 0) {
                     // Create results HTML
                     const resultsHTML = `
                         <h3>Search Results</h3>
                         <div style="max-height: 400px; overflow-y: auto;">
-                            ${data.map(file => `
+                            ${data.map(item => `
                                 <div class="result-item">
-                                    <div class="result-name">${file.name}</div>
+                                    <div class="result-name">${item.name || item.title}</div>
                                     <div class="result-type">
-                                        ${file.mimeType.replace('application/', '').replace('vnd.google-apps.', '')}
+                                        ${item.type || item.mimeType?.replace('application/', '').replace('vnd.google-apps.', '') || ''}
                                     </div>
                                 </div>
                             `).join('')}
@@ -242,10 +253,26 @@
                 } else {
                     resultsDiv.innerHTML = '<div class="loading">No documents found matching your search.</div>';
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 resultsDiv.innerHTML = '<div class="error-message">Error performing search. Please try again.</div>';
                 console.error('Search error:', error);
-            }
+            });
+        }
+
+        // Add search button functionality for Google Drive
+        document.getElementById('searchButtonDrive').addEventListener('click', () => {
+            handleSearch('searchTopicDrive', 'searchResultsDrive', 'http://localhost:5000/googledrive/search');
+        });
+
+        // Add search button functionality for Square Help
+        document.getElementById('searchButtonSquare').addEventListener('click', () => {
+            handleSearch('searchTopicSquare', 'searchResultsSquare', 'http://localhost:5000/squarehelp/search');
+        });
+
+        // Add search button functionality for High Spot
+        document.getElementById('searchButtonHighSpot').addEventListener('click', () => {
+            handleSearch('searchTopicHighSpot', 'searchResultsHighSpot', 'http://localhost:5000/highspot/search');
         });
     </script>
 </body>
