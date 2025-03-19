@@ -182,6 +182,47 @@
     </div>
 
     <script>
+        // Square Help content data
+        const squareHelpContent = {
+            articles: [
+                {
+                    title: "Overview of Square Risk Manager",
+                    content: "Square Risk Manager helps you monitor and manage suspicious activity in your Square account. With Risk Manager, you can view flagged payments, customize your risk settings, and manage your payment risk.",
+                    type: "section"
+                },
+                {
+                    title: "Access Risk Manager",
+                    content: "To access Risk Manager: 1. Sign in to your Square Dashboard. 2. Go to Risk Manager in your online Square Dashboard. Note: Risk Manager access is limited to the Account Owner and users with appropriate permissions.",
+                    type: "section"
+                },
+                {
+                    title: "View Flagged Payments",
+                    content: "In Risk Manager, you can view payments that have been flagged as potentially risky: 1. Go to the Flagged Payments tab 2. View payment details including amount, date, and risk factors 3. Take action on flagged payments",
+                    type: "section"
+                },
+                {
+                    title: "Customize Risk Settings",
+                    content: "Adjust your risk settings to match your business needs: 1. Go to the Settings tab 2. Configure risk rules and thresholds 3. Set up notification preferences for flagged payments",
+                    type: "section"
+                },
+                {
+                    title: "Risk Factors",
+                    content: "Risk Manager evaluates various factors including: - Unusual payment patterns - High-risk payment methods - Suspicious customer behavior - Geographic location - Transaction amount variations",
+                    type: "section"
+                },
+                {
+                    title: "Managing Flagged Payments",
+                    content: "When a payment is flagged: 1. Review the payment details and risk factors 2. Decide whether to accept or decline the payment 3. Document your decision for future reference",
+                    type: "section"
+                },
+                {
+                    title: "Risk Reports",
+                    content: "Generate and view risk reports: 1. Go to the Reports tab 2. Select your desired date range 3. View risk trends and patterns 4. Export reports for further analysis",
+                    type: "section"
+                }
+            ]
+        };
+
         document.getElementById('postType').addEventListener('change', function() {
             const googleDriveSection = document.getElementById('googleDriveSection');
             const squareHelpSection = document.getElementById('squareHelpSection');
@@ -206,11 +247,54 @@
             }
         });
 
-        // Function to handle search for any section
+        // Function to handle search for Square Help
+        function handleSquareHelpSearch(searchQuery, resultsDiv) {
+            if (!searchQuery) {
+                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
+                return;
+            }
+
+            // Show loading state
+            resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
+
+            // Perform client-side search
+            const searchResults = squareHelpContent.articles.filter(article => {
+                const searchTerm = searchQuery.toLowerCase();
+                return (
+                    article.title.toLowerCase().includes(searchTerm) ||
+                    article.content.toLowerCase().includes(searchTerm)
+                );
+            });
+
+            if (searchResults.length > 0) {
+                const resultsHTML = `
+                    <h3>Search Results from Square Risk Manager Guide</h3>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        ${searchResults.map(item => `
+                            <div class="result-item">
+                                <div class="result-name">${item.title}</div>
+                                <div class="result-content">${item.content}</div>
+                                <div class="result-type">${item.type}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                resultsDiv.innerHTML = resultsHTML;
+            } else {
+                resultsDiv.innerHTML = '<div class="loading">No matching content found in the Square Risk Manager guide.</div>';
+            }
+        }
+
+        // Function to handle search for other sections
         function handleSearch(searchId, resultsId, apiEndpoint) {
             const searchQuery = document.getElementById(searchId).value.trim();
             const resultsDiv = document.getElementById(resultsId);
             
+            if (resultsId === 'searchResultsSquare') {
+                handleSquareHelpSearch(searchQuery, resultsDiv);
+                return;
+            }
+
             if (!searchQuery) {
                 resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
                 return;
@@ -267,7 +351,9 @@
 
         // Add search button functionality for Square Help
         document.getElementById('searchButtonSquare').addEventListener('click', () => {
-            handleSearch('searchTopicSquare', 'searchResultsSquare', 'http://localhost:5000/squarehelp/search');
+            const searchQuery = document.getElementById('searchTopicSquare').value.trim();
+            const resultsDiv = document.getElementById('searchResultsSquare');
+            handleSquareHelpSearch(searchQuery, resultsDiv);
         });
 
         // Add search button functionality for High Spot
@@ -275,5 +361,13 @@
             handleSearch('searchTopicHighSpot', 'searchResultsHighSpot', 'http://localhost:5000/highspot/search');
         });
     </script>
+    <style>
+        .result-content {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+    </style>
 </body>
 </html>
