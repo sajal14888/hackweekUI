@@ -92,7 +92,7 @@
         }
 
         .result-item {
-            padding: 12px;
+            padding: 16px;
             border-bottom: 1px solid #E0E0E0;
             transition: background-color 0.2s;
         }
@@ -105,15 +105,27 @@
             border-bottom: none;
         }
 
-        .result-name {
+        .result-section {
             font-weight: 500;
             color: #1F1F1F;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .result-line {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
         }
 
         .result-type {
             font-size: 12px;
             color: #666;
+            margin-top: 4px;
         }
 
         .error-message {
@@ -128,6 +140,30 @@
             color: #666;
             padding: 10px;
             text-align: center;
+        }
+
+        .no-results {
+            color: #666;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-top: 16px;
+        }
+
+        .search-summary {
+            color: #666;
+            font-size: 14px;
+            margin: 8px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -257,31 +293,57 @@
             // Show loading state
             resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
 
-            // Perform client-side search
-            const searchResults = squareHelpContent.articles.filter(article => {
-                const searchTerm = searchQuery.toLowerCase();
-                return (
-                    article.title.toLowerCase().includes(searchTerm) ||
-                    article.content.toLowerCase().includes(searchTerm)
-                );
+            // Perform line-by-line search
+            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
+            const searchResults = [];
+
+            squareHelpContent.articles.forEach(article => {
+                // Split content into lines
+                const lines = article.content.split(/[.]\s+|[\n]/).filter(line => line.trim().length > 0);
+                
+                lines.forEach(line => {
+                    const lineText = line.trim();
+                    // Check if all search terms are present in the line
+                    const matches = searchTerms.every(term => 
+                        lineText.toLowerCase().includes(term)
+                    );
+
+                    if (matches) {
+                        searchResults.push({
+                            title: article.title,
+                            line: lineText,
+                            type: article.type
+                        });
+                    }
+                });
             });
 
             if (searchResults.length > 0) {
                 const resultsHTML = `
                     <h3>Search Results from Square Risk Manager Guide</h3>
+                    <div class="search-summary">Found ${searchResults.length} matching line${searchResults.length === 1 ? '' : 's'}</div>
                     <div style="max-height: 400px; overflow-y: auto;">
-                        ${searchResults.map(item => `
-                            <div class="result-item">
-                                <div class="result-name">${item.title}</div>
-                                <div class="result-content">${item.content}</div>
-                                <div class="result-type">${item.type}</div>
-                            </div>
-                        `).join('')}
+                        ${searchResults.map(result => {
+                            let highlightedLine = result.line;
+                            // Highlight each search term
+                            searchTerms.forEach(term => {
+                                const regex = new RegExp(`(${term})`, 'gi');
+                                highlightedLine = highlightedLine.replace(regex, '<span class="highlight">$1</span>');
+                            });
+                            
+                            return `
+                                <div class="result-item">
+                                    <div class="result-section">${result.title}</div>
+                                    <div class="result-line">${highlightedLine}</div>
+                                    <div class="result-type">${result.type}</div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 `;
                 resultsDiv.innerHTML = resultsHTML;
             } else {
-                resultsDiv.innerHTML = '<div class="loading">No matching content found in the Square Risk Manager guide.</div>';
+                resultsDiv.innerHTML = '<div class="no-results">No matching lines found in the Square Risk Manager guide.</div>';
             }
         }
 
@@ -361,13 +423,5 @@
             handleSearch('searchTopicHighSpot', 'searchResultsHighSpot', 'http://localhost:5000/highspot/search');
         });
     </script>
-    <style>
-        .result-content {
-            margin: 8px 0;
-            font-size: 14px;
-            color: #666;
-            line-height: 1.4;
-        }
-    </style>
 </body>
 </html>
