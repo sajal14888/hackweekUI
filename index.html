@@ -16,7 +16,7 @@
         }
 
         .post-form-container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background-color: white;
@@ -93,39 +93,73 @@
 
         .result-item {
             padding: 16px;
-            border-bottom: 1px solid #E0E0E0;
-            transition: background-color 0.2s;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            background-color: #FFFFFF;
         }
 
         .result-item:hover {
-            background-color: #f5f5f5;
-        }
-
-        .result-item:last-child {
-            border-bottom: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .result-section {
             font-weight: 500;
             color: #1F1F1F;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-size: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #E0E0E0;
         }
 
-        .result-line {
+        .result-content-wrapper {
+            position: relative;
             margin: 8px 0;
+        }
+
+        .editable-content {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
             font-size: 14px;
-            color: #333;
-            line-height: 1.5;
-            padding: 8px;
-            background-color: #f8f9fa;
+            line-height: 1.6;
+            border: 1px solid #E0E0E0;
             border-radius: 4px;
+            background-color: #FFFFFF;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 8px;
+        }
+
+        .editable-content:focus {
+            outline: none;
+            border-color: #0070BA;
+            box-shadow: 0 0 0 2px rgba(0,112,186,0.2);
+        }
+
+        .highlighted-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            pointer-events: none;
+            white-space: pre-wrap;
+            overflow: hidden;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            border-radius: 2px;
         }
 
         .result-type {
             font-size: 12px;
             color: #666;
-            margin-top: 4px;
+            margin-top: 8px;
         }
 
         .error-message {
@@ -155,15 +189,9 @@
             color: #666;
             font-size: 14px;
             margin: 8px 0 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #E0E0E0;
-        }
-
-        .highlight {
-            background-color: #fff3cd;
-            padding: 0 2px;
-            border-radius: 2px;
-            font-weight: 500;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -303,48 +331,45 @@
             // Show loading state
             resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
 
-            // Perform line-by-line search
+            // Perform search
             const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
             const searchResults = [];
 
             squareHelpContent.articles.forEach(article => {
-                // Split content into lines
-                const lines = article.content.split(/[.]\s+|[\n]/).filter(line => line.trim().length > 0);
-                
-                lines.forEach(line => {
-                    const lineText = line.trim();
-                    // Check if all search terms are present in the line
-                    const matches = searchTerms.every(term => 
-                        lineText.toLowerCase().includes(term)
-                    );
+                // Check if any search term appears in the content
+                const matches = searchTerms.every(term => 
+                    article.content.toLowerCase().includes(term)
+                );
 
-                    if (matches) {
-                        searchResults.push({
-                            title: article.title,
-                            line: lineText,
-                            type: article.type
-                        });
-                    }
-                });
+                if (matches) {
+                    searchResults.push({
+                        title: article.title,
+                        fullContent: article.content,
+                        type: article.type
+                    });
+                }
             });
 
             if (searchResults.length > 0) {
                 const resultsHTML = `
                     <h3>Search Results from Square Risk Manager Guide</h3>
-                    <div class="search-summary">Found ${searchResults.length} matching line${searchResults.length === 1 ? '' : 's'}</div>
-                    <div style="max-height: 400px; overflow-y: auto;">
+                    <div class="search-summary">Found ${searchResults.length} matching section${searchResults.length === 1 ? '' : 's'}</div>
+                    <div style="max-height: 600px; overflow-y: auto;">
                         ${searchResults.map(result => {
-                            let highlightedLine = result.line;
+                            let highlightedContent = result.fullContent;
                             // Highlight each search term
                             searchTerms.forEach(term => {
                                 const regex = new RegExp(`(${term})`, 'gi');
-                                highlightedLine = highlightedLine.replace(regex, '<span class="highlight">$1</span>');
+                                highlightedContent = highlightedContent.replace(regex, '<span class="highlight">$1</span>');
                             });
                             
                             return `
                                 <div class="result-item">
                                     <div class="result-section">${result.title}</div>
-                                    <div class="result-line">${highlightedLine}</div>
+                                    <div class="result-content-wrapper">
+                                        <textarea class="editable-content" data-section="${result.title}">${result.fullContent}</textarea>
+                                        <div class="highlighted-content">${highlightedContent}</div>
+                                    </div>
                                     <div class="result-type">${result.type}</div>
                                 </div>
                             `;
@@ -352,8 +377,36 @@
                     </div>
                 `;
                 resultsDiv.innerHTML = resultsHTML;
+
+                // Add event listeners to sync scroll between textarea and highlighted content
+                document.querySelectorAll('.editable-content').forEach(textarea => {
+                    const highlightedDiv = textarea.nextElementSibling;
+                    
+                    // Sync scroll positions
+                    textarea.addEventListener('scroll', () => {
+                        highlightedDiv.scrollTop = textarea.scrollTop;
+                        highlightedDiv.scrollLeft = textarea.scrollLeft;
+                    });
+
+                    // Update content when edited
+                    textarea.addEventListener('input', () => {
+                        const title = textarea.dataset.section;
+                        const articleIndex = squareHelpContent.articles.findIndex(a => a.title === title);
+                        if (articleIndex !== -1) {
+                            squareHelpContent.articles[articleIndex].content = textarea.value;
+                            
+                            // Update highlighted content
+                            let highlightedContent = textarea.value;
+                            searchTerms.forEach(term => {
+                                const regex = new RegExp(`(${term})`, 'gi');
+                                highlightedContent = highlightedContent.replace(regex, '<span class="highlight">$1</span>');
+                            });
+                            highlightedDiv.innerHTML = highlightedContent;
+                        }
+                    });
+                });
             } else {
-                resultsDiv.innerHTML = '<div class="no-results">No matching lines found in the Square Risk Manager guide.</div>';
+                resultsDiv.innerHTML = '<div class="no-results">No matching content found in the Square Risk Manager guide.</div>';
             }
         }
 
