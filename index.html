@@ -111,6 +111,20 @@
 
         .button-group {
             margin-top: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .save-status {
+            color: #10B981;
+            margin-left: 12px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .save-status.visible {
+            opacity: 1;
         }
 
         .save-button {
@@ -308,6 +322,11 @@
                 const articleIndex = squareHelpContent.articles.findIndex(a => a.title === sectionTitle);
                 if (articleIndex !== -1) {
                     squareHelpContent.articles[articleIndex].content = contentDiv.innerText;
+                    const saveStatus = document.getElementById(`save-status-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                    saveStatus.classList.add('visible');
+                    setTimeout(() => {
+                        saveStatus.classList.remove('visible');
+                    }, 2000);
                 }
             }
         }
@@ -375,6 +394,7 @@
                                 <div class="button-group">
                                     <button class="save-button" onclick="saveContent('${result.title}')">Save Changes</button>
                                     <button class="export-button" onclick="exportContent('${result.title}')">Export to Text</button>
+                                    <span class="save-status" id="save-status-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
                                 </div>
                             </div>
                         `;
