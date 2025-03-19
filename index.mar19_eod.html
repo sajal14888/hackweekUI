@@ -236,6 +236,36 @@
             </select>
         </div>
 
+        <!-- New Market Selection Component -->
+        <div>
+            <label>Select Market*</label>
+            <select class="form-control" id="market">
+                <option value="au">Australia</option>
+                <option value="ca">Canada</option>
+                <option value="es">Spain</option>
+                <option value="fr">France</option>
+                <option value="gb">United Kingdom</option>
+                <option value="ie">Ireland</option>
+                <option value="it">Italy</option>
+                <option value="jp">Japan</option>
+                <option value="nz">New Zealand</option>
+                <option value="us" selected>United States</option>
+            </select>
+        </div>
+
+        <!-- New Language Selection Component -->
+        <div>
+            <label>Select Language*</label>
+            <select class="form-control" id="language">
+                <option value="en" selected>English</option>
+                <option value="fr">French</option>
+                <option value="ja">Japanese</option>
+                <option value="es">Spanish</option>
+                <option value="ca">Catalan</option>
+                <option value="it">Italian</option>
+            </select>
+        </div>
+
         <div>
             <label>Search Your Topic</label>
             <input type="text" class="form-control" id="searchTopic" placeholder="">
@@ -427,8 +457,10 @@
             }
         }
 
-        function handleSearch() {
+          function handleSearch() {
             const searchQuery = document.getElementById('searchTopic').value.trim();
+            const selectedMarket = document.getElementById('market').value;
+            const selectedLanguage = document.getElementById('language').value;
             const resultsDiv = document.getElementById('searchResults');
 
             if (!searchQuery) {
@@ -496,7 +528,7 @@
             }
         }
 
-        document.getElementById('searchButton').addEventListener('click', handleSearch);
+              document.getElementById('searchButton').addEventListener('click', handleSearch);
         document.getElementById('searchTopic').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSearch();
         });
