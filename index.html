@@ -184,6 +184,69 @@
             background-color: #2563EB;
         }
 
+        .suggest-button {
+            background-color: #8B5CF6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        .suggest-button:hover {
+            background-color: #7C3AED;
+        }
+
+        .suggestion-view {
+            display: none;
+            margin-top: 16px;
+            gap: 16px;
+            border-top: 1px solid #E0E0E0;
+            padding-top: 16px;
+        }
+
+        .suggestion-view.visible {
+            display: block;
+        }
+
+        .suggestion-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2C3E50;
+            margin-bottom: 12px;
+        }
+
+        .suggestion-content {
+            padding: 16px;
+            border-radius: 8px;
+            background-color: #F8FAFC;
+            border: 1px solid #E0E0E0;
+            margin-bottom: 16px;
+        }
+
+        .original-text {
+            color: #2C3E50;
+            background-color: #FFF9C4;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .suggested-text {
+            color: #2C3E50;
+            background-color: #E8F5E9;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .suggestion-explanation {
+            font-size: 14px;
+            color: #6B7280;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
         .save-status.visible {
             opacity: 1;
         }
@@ -377,6 +440,64 @@
             ]
         };
 
+        function suggestEdits(sectionTitle, searchQuery) {
+            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
+            const suggestionView = document.getElementById(`suggestion-${safeTitleId}`);
+            const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
+            
+            if (suggestionView && contentDiv) {
+                const originalContent = contentDiv.innerText;
+                const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
+                
+                // Find the most relevant paragraph based on search terms
+                const paragraphs = originalContent.split('\n\n');
+                let mostRelevantParagraph = '';
+                let maxMatches = 0;
+                
+                paragraphs.forEach(paragraph => {
+                    const matches = searchTerms.filter(term => 
+                        paragraph.toLowerCase().includes(term)
+                    ).length;
+                    
+                    if (matches > maxMatches) {
+                        maxMatches = matches;
+                        mostRelevantParagraph = paragraph;
+                    }
+                });
+
+                // Generate a suggestion based on the search query and content
+                let suggestion = '';
+                if (searchQuery.toLowerCase().includes('verification') || searchQuery.toLowerCase().includes('avs')) {
+                    suggestion = "For enhanced security, you can also enable real-time address verification checks that automatically validate the customer's billing address during the transaction process.";
+                } else if (searchQuery.toLowerCase().includes('rule') || searchQuery.toLowerCase().includes('condition')) {
+                    suggestion = "You can create custom rules by combining multiple conditions, such as transaction amount thresholds with address verification results, to better target specific risk patterns.";
+                } else if (searchQuery.toLowerCase().includes('alert') || searchQuery.toLowerCase().includes('notification')) {
+                    suggestion = "Configure instant notifications via email or SMS to receive immediate alerts when suspicious transactions match your defined risk criteria.";
+                } else {
+                    suggestion = "Consider implementing additional verification steps for transactions that meet specific risk criteria to enhance your fraud prevention strategy.";
+                }
+
+                // Create the suggestion view content
+                suggestionView.innerHTML = `
+                    <div class="suggestion-header">Suggested Edit</div>
+                    <div class="suggestion-content">
+                        <div>
+                            <span class="original-text">${mostRelevantParagraph}</span>
+                            <br><br>
+                            Suggested addition:<br>
+                            <span class="suggested-text">${suggestion}</span>
+                        </div>
+                        <div class="suggestion-explanation">
+                            This suggestion is based on your search for "${searchQuery}" and aims to provide additional relevant information about ${sectionTitle.toLowerCase()}.
+                        </div>
+                    </div>
+                `;
+
+                // Show the suggestion view
+                suggestionView.classList.add('visible');
+            }
+        }
+
         function compareContent(sectionTitle) {
             const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
             const comparisonView = document.getElementById(`comparison-${safeTitleId}`);
@@ -474,6 +595,7 @@
                                 <div class="button-group">
                                     <button class="save-button" onclick="saveContent('${result.title}')">Save Changes</button>
                                     <button class="compare-button" onclick="compareContent('${result.title}')">Compare</button>
+                                    <button class="suggest-button" onclick="suggestEdits('${result.title}', document.getElementById('searchTopic').value)">Suggest Edits</button>
                                     <button class="export-button" onclick="exportContent('${result.title}')">Export to Text</button>
                                     <span class="save-status" id="save-status-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
                                 </div>
@@ -487,6 +609,7 @@
                                         <div class="comparison-content edited-version" id="edited-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">${result.content}</div>
                                     </div>
                                 </div>
+                                <div class="suggestion-view" id="suggestion-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}"></div>
                             </div>
                         `;
                     }).join('')}
