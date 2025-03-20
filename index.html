@@ -109,6 +109,12 @@
             margin: 8px 0;
         }
 
+        .button-group-top {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+
         .button-group {
             margin-top: 12px;
             display: flex;
@@ -302,7 +308,10 @@
         <div>
             <label>Search Your Topic</label>
             <input type="text" class="form-control" id="searchTopic" placeholder="">
-            <button class="search-button" id="searchButton">Search</button>
+            <div class="button-group-top">
+                <button class="search-button" id="searchButton">Search</button>
+                <button class="suggest-button" onclick="suggestEdits(null, document.getElementById('searchTopic').value)">Suggest Edits</button>
+            </div>
         </div>
 
         <div id="searchResults" class="search-results"></div>
@@ -441,61 +450,87 @@
         };
 
         function suggestEdits(sectionTitle, searchQuery) {
-            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
-            const suggestionView = document.getElementById(`suggestion-${safeTitleId}`);
-            const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
+            const searchResults = document.getElementById('searchResults');
             
-            if (suggestionView && contentDiv) {
-                const originalContent = contentDiv.innerText;
+            // Find most relevant section if sectionTitle is null
+            if (!sectionTitle) {
                 const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
-                
-                // Find the most relevant paragraph based on search terms
-                const paragraphs = originalContent.split('\n\n');
-                let mostRelevantParagraph = '';
+                let mostRelevantSection = null;
                 let maxMatches = 0;
                 
-                paragraphs.forEach(paragraph => {
+                squareHelpContent.articles.forEach(article => {
                     const matches = searchTerms.filter(term => 
-                        paragraph.toLowerCase().includes(term)
+                        article.content.toLowerCase().includes(term) ||
+                        article.title.toLowerCase().includes(term)
                     ).length;
                     
                     if (matches > maxMatches) {
                         maxMatches = matches;
-                        mostRelevantParagraph = paragraph;
+                        mostRelevantSection = article;
                     }
                 });
-
-                // Generate a suggestion based on the search query and content
-                let suggestion = '';
-                if (searchQuery.toLowerCase().includes('verification') || searchQuery.toLowerCase().includes('avs')) {
-                    suggestion = "For enhanced security, you can also enable real-time address verification checks that automatically validate the customer's billing address during the transaction process.";
-                } else if (searchQuery.toLowerCase().includes('rule') || searchQuery.toLowerCase().includes('condition')) {
-                    suggestion = "You can create custom rules by combining multiple conditions, such as transaction amount thresholds with address verification results, to better target specific risk patterns.";
-                } else if (searchQuery.toLowerCase().includes('alert') || searchQuery.toLowerCase().includes('notification')) {
-                    suggestion = "Configure instant notifications via email or SMS to receive immediate alerts when suspicious transactions match your defined risk criteria.";
-                } else {
-                    suggestion = "Consider implementing additional verification steps for transactions that meet specific risk criteria to enhance your fraud prevention strategy.";
+                
+                if (mostRelevantSection) {
+                    sectionTitle = mostRelevantSection.title;
                 }
-
-                // Create the suggestion view content
-                suggestionView.innerHTML = `
-                    <div class="suggestion-header">Suggested Edit</div>
-                    <div class="suggestion-content">
-                        <div>
-                            <span class="original-text">${mostRelevantParagraph}</span>
-                            <br><br>
-                            Suggested addition:<br>
-                            <span class="suggested-text">${suggestion}</span>
-                        </div>
-                        <div class="suggestion-explanation">
-                            This suggestion is based on your search for "${searchQuery}" and aims to provide additional relevant information about ${sectionTitle.toLowerCase()}.
-                        </div>
-                    </div>
-                `;
-
-                // Show the suggestion view
-                suggestionView.classList.add('visible');
             }
+
+            if (!searchQuery) {
+                searchResults.innerHTML = '<div class="error-message">Please enter a search term for suggestions</div>';
+                return;
+            }
+
+            // Generate suggestion based on search query
+            let suggestion = '';
+            if (searchQuery.toLowerCase().includes('verification') || searchQuery.toLowerCase().includes('avs')) {
+                suggestion = "For enhanced security, you can also enable real-time address verification checks that automatically validate the customer's billing address during the transaction process.";
+            } else if (searchQuery.toLowerCase().includes('rule') || searchQuery.toLowerCase().includes('condition')) {
+                suggestion = "You can create custom rules by combining multiple conditions, such as transaction amount thresholds with address verification results, to better target specific risk patterns.";
+            } else if (searchQuery.toLowerCase().includes('alert') || searchQuery.toLowerCase().includes('notification')) {
+                suggestion = "Configure instant notifications via email or SMS to receive immediate alerts when suspicious transactions match your defined risk criteria.";
+            } else {
+                suggestion = "Consider implementing additional verification steps for transactions that meet specific risk criteria to enhance your fraud prevention strategy.";
+            }
+
+            // Find relevant content
+            const relevantSection = squareHelpContent.articles.find(article => article.title === sectionTitle);
+            if (!relevantSection) {
+                searchResults.innerHTML = '<div class="error-message">Could not find relevant section for suggestion</div>';
+                return;
+            }
+
+            // Find most relevant paragraph
+            const paragraphs = relevantSection.content.split('\n\n');
+            let mostRelevantParagraph = '';
+            let maxMatches = 0;
+            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
+            
+            paragraphs.forEach(paragraph => {
+                const matches = searchTerms.filter(term => 
+                    paragraph.toLowerCase().includes(term)
+                ).length;
+                
+                if (matches > maxMatches) {
+                    maxMatches = matches;
+                    mostRelevantParagraph = paragraph;
+                }
+            });
+
+            // Display suggestion
+            searchResults.innerHTML = `
+                <h3>Suggested Edit for "${sectionTitle}"</h3>
+                <div class="suggestion-content">
+                    <div>
+                        <span class="original-text">${mostRelevantParagraph}</span>
+                        <br><br>
+                        Suggested addition:<br>
+                        <span class="suggested-text">${suggestion}</span>
+                    </div>
+                    <div class="suggestion-explanation">
+                        This suggestion is based on your search for "${searchQuery}" and aims to provide additional relevant information about ${sectionTitle.toLowerCase()}.
+                    </div>
+                </div>
+            `;
         }
 
         function compareContent(sectionTitle) {
@@ -595,7 +630,6 @@
                                 <div class="button-group">
                                     <button class="save-button" onclick="saveContent('${result.title}')">Save Changes</button>
                                     <button class="compare-button" onclick="compareContent('${result.title}')">Compare</button>
-                                    <button class="suggest-button" onclick="suggestEdits('${result.title}', document.getElementById('searchTopic').value)">Suggest Edits</button>
                                     <button class="export-button" onclick="exportContent('${result.title}')">Export to Text</button>
                                     <span class="save-status" id="save-status-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
                                 </div>
