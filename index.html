@@ -253,6 +253,46 @@
             margin-bottom: 8px;
         }
 
+        .suggestion-actions {
+            margin: 16px 0;
+        }
+
+        .compile-button {
+            background-color: #8B5CF6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .compile-button:hover {
+            background-color: #7C3AED;
+        }
+
+        .compiled-content {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: #F8FAFC;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+        }
+
+        .compiled-content.hidden {
+            display: none;
+        }
+
+        .compiled-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #2C3E50;
+            padding: 8px;
+            background-color: #E8F5E9;
+            border-radius: 4px;
+        }
+
         .suggestion-explanation {
             font-size: 14px;
             color: #6B7280;
@@ -641,7 +681,7 @@
                 mostRelevantParagraph = paragraphs[0];
             }
 
-            // Display suggestion with improved context
+            // Display suggestion with improved context and compile option
             searchResults.innerHTML = `
                 <h3>Suggested Edit for "${sectionTitle}"</h3>
                 <div class="suggestion-content">
@@ -651,12 +691,55 @@
                         <br><br>
                         <div class="suggestion-context">Suggested addition based on your search "${searchQuery}":</div>
                         <span class="suggested-text">${suggestion}</span>
+                        <br><br>
+                        <div class="suggestion-actions">
+                            <button class="compile-button" onclick="compileContent('${sectionTitle}', \`${mostRelevantParagraph}\`, \`${suggestion}\`)">
+                                Compile Content
+                            </button>
+                        </div>
+                        <div id="compiled-content-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}" class="compiled-content hidden">
+                            <div class="suggestion-context">Compiled version:</div>
+                            <div class="compiled-text"></div>
+                        </div>
                     </div>
                     <div class="suggestion-explanation">
                         This suggestion is tailored for the ${sectionTitle.toLowerCase()} section and aims to provide specific information about your search topic.
+                        Click "Compile Content" to see a merged version of the original and suggested content.
                     </div>
                 </div>
             `;
+        }
+
+        function compileContent(sectionTitle, originalContent, suggestedContent) {
+            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
+            const compiledContentDiv = document.getElementById(`compiled-content-${safeTitleId}`);
+            const compiledTextDiv = compiledContentDiv.querySelector('.compiled-text');
+
+            // Remove any existing highlight spans from the content
+            originalContent = originalContent.replace(/<[^>]*>/g, '');
+            suggestedContent = suggestedContent.replace(/<[^>]*>/g, '');
+
+            // Analyze the content to determine the best way to merge
+            let compiledText = '';
+            
+            if (sectionTitle.includes("Payment velocity")) {
+                // For payment velocity, add the specific rule after general description
+                compiledText = `${originalContent} ${suggestedContent}`;
+            } else if (suggestedContent.toLowerCase().includes("can be configured") || 
+                      suggestedContent.toLowerCase().includes("can be customized")) {
+                // For configuration-related suggestions, add after main description
+                compiledText = `${originalContent} ${suggestedContent}`;
+            } else if (originalContent.endsWith(".")) {
+                // If original content ends with a period, add a space
+                compiledText = `${originalContent} ${suggestedContent}`;
+            } else {
+                // Default: add with proper spacing
+                compiledText = `${originalContent}${originalContent.endsWith(".") ? " " : ". "}${suggestedContent}`;
+            }
+
+            // Update the compiled content
+            compiledTextDiv.textContent = compiledText;
+            compiledContentDiv.classList.remove('hidden');
         }
 
         function compareContent(sectionTitle) {
