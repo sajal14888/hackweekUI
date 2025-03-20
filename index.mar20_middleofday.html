@@ -6,23 +6,29 @@
     <title>Content Compass</title>
     <style>
         /* Previous styles remain the same */
-        
-        /* Add button group style */
-        .button-group-top {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
+
+        /* Add style for info box */
+        .info-box-container {
+            display: none;
+            margin-bottom: 16px;
         }
 
-        /* Add suggest button style */
-        .suggest-button {
-            background-color: #8B5CF6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
+        .info-box-container.visible {
+            display: block;
+        }
+
+        .info-box {
+            width: 100%;
+            padding: 8px 12px;
             font-size: 14px;
-            cursor: pointer;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            background-color: #FFFFFF;
+            box-sizing: border-box;
+            color: #2C3E50;
+            margin-top: 8px;
+            min-height: 100px;
+            resize: vertical;
         }
 
         /* Previous styles continue... */
@@ -33,11 +39,17 @@
         <h2>Content Compass</h2>
         <div>
             <label>Select the Content Database*</label>
-            <select class="form-control" id="postType">
+            <select class="form-control" id="postType" onchange="handleDatabaseChange()">
                 <option value="square-help" selected>Square Help</option>
                 <option value="squarewise">Google Drive</option>
                 <option value="high-spot">High Spot</option>
+                <option value="snowflake">Snowflake</option>
             </select>
+        </div>
+
+        <div id="infoBox" class="info-box-container">
+            <label>Info to Search</label>
+            <textarea class="info-box" id="infoToSearch" placeholder="Enter information to search..."></textarea>
         </div>
 
         <div>
@@ -53,126 +65,98 @@
     </div>
 
     <script>
-        // Previous code remains the same until we add the new functions
+        // Add new function to handle database selection
+        function handleDatabaseChange() {
+            const postType = document.getElementById('postType').value;
+            const infoBox = document.getElementById('infoBox');
+            
+            if (postType === 'snowflake') {
+                infoBox.classList.add('visible');
+            } else {
+                infoBox.classList.remove('visible');
+            }
+        }
 
-        function suggestEdits() {
+        // Previous code remains the same...
+
+        function handleSearch() {
             const searchQuery = document.getElementById('searchTopic').value.trim();
+            const postType = document.getElementById('postType').value;
+            const infoToSearch = document.getElementById('infoToSearch').value.trim();
             const resultsDiv = document.getElementById('searchResults');
 
             if (!searchQuery) {
-                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term for suggestions</div>';
+                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
                 return;
             }
 
-            // Find relevant section based on search query
-            const relevantSection = findRelevantSection(searchQuery);
-            if (!relevantSection) {
-                resultsDiv.innerHTML = '<div class="error-message">Could not find a relevant section for suggestions</div>';
+            if (postType === 'snowflake' && !infoToSearch) {
+                resultsDiv.innerHTML = '<div class="error-message">Please enter information to search for Snowflake database</div>';
                 return;
             }
 
-            // Generate suggestion based on the query and section
-            const suggestion = generateSuggestion(searchQuery, relevantSection);
-
-            // Display results in the same style as search results
-            resultsDiv.innerHTML = `
-                <h3>Search Results from Square Risk Manager Guide</h3>
-                <div class="search-summary">Found relevant section for suggestions</div>
-                <div class="result-item">
-                    <div class="result-section">${relevantSection.title}</div>
-                    <div class="editable-content" contenteditable="true" data-section="${relevantSection.title}">
-                        ${relevantSection.content}
-                        
-                        Suggested Addition:
-                        ${suggestion}
-                    </div>
-                    <div class="button-group">
-                        <button class="save-button" onclick="saveContent('${relevantSection.title}')">Save Changes</button>
-                        <button class="compare-button" onclick="compareContent('${relevantSection.title}')">Compare</button>
-                        <button class="export-button" onclick="exportContent('${relevantSection.title}')">Export to Text</button>
-                        <span class="save-status" id="save-status-${relevantSection.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
-                    </div>
-                    <div class="comparison-view" id="comparison-${relevantSection.title.replace(/[^a-zA-Z0-9]/g, '-')}">
-                        <div class="comparison-column">
-                            <h4>Original Version</h4>
-                            <div class="comparison-content original-version">${relevantSection.content}</div>
-                        </div>
-                        <div class="comparison-column">
-                            <h4>Edited Version</h4>
-                            <div class="comparison-content edited-version" id="edited-${relevantSection.title.replace(/[^a-zA-Z0-9]/g, '-')}">${relevantSection.content}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function findRelevantSection(query) {
-            const searchTerms = query.toLowerCase().split(' ');
-            let bestMatch = null;
-            let highestScore = 0;
-
-            // Define section keywords mapping
-            const sectionKeywords = {
-                "Payment velocity": ["velocity", "frequency", "transactions", "repeat", "multiple"],
-                "Address Verification System (AVS) Overview": ["avs", "address", "verification", "billing"],
-                "Card Verification Value (CVV)": ["cvv", "verification", "security code"],
-                "Payment amount": ["amount", "threshold", "limit", "transaction size"],
-                "3D Secure (3DS)": ["3ds", "secure", "authentication", "verify"],
-                "International payment cards": ["international", "country", "foreign"],
-                "Prepaid payment cards": ["prepaid", "gift card", "non-traceable"],
-                "Buyer IP address location": ["ip", "location", "country"],
-                "View risk alerts": ["alert", "notification", "flag"]
-            };
+            // Rest of the search function remains the same...
+            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
+            const searchResults = [];
 
             squareHelpContent.articles.forEach(article => {
-                let score = 0;
-                
-                // Check title and content matches
-                searchTerms.forEach(term => {
-                    if (article.title.toLowerCase().includes(term)) score += 2;
-                    if (article.content.toLowerCase().includes(term)) score += 1;
-                });
+                const matches = searchTerms.every(term => 
+                    article.content.toLowerCase().includes(term) ||
+                    article.title.toLowerCase().includes(term)
+                );
 
-                // Check keyword matches
-                Object.entries(sectionKeywords).forEach(([section, keywords]) => {
-                    if (article.title.includes(section)) {
-                        keywords.forEach(keyword => {
-                            if (query.toLowerCase().includes(keyword.toLowerCase())) {
-                                score += 3;
-                            }
-                        });
-                    }
-                });
-
-                if (score > highestScore) {
-                    highestScore = score;
-                    bestMatch = article;
+                if (matches) {
+                    searchResults.push({
+                        title: article.title,
+                        content: article.content,
+                        type: article.type
+                    });
                 }
             });
 
-            return bestMatch;
-        }
-
-        function generateSuggestion(query, section) {
-            const sectionType = section.title.toLowerCase();
-            let suggestion = '';
-
-            if (sectionType.includes('velocity')) {
-                suggestion = '\n\nSuggested best practices for velocity limits:\n- New customers: 3 transactions/24 hours\n- Established customers: 5 transactions/24 hours\n- Premium customers: 10 transactions/24 hours\n\nConsider implementing a graduated approach based on customer history and transaction patterns.';
-            } else if (sectionType.includes('avs')) {
-                suggestion = '\n\nRecommended AVS handling:\n- Full match: Proceed with transaction\n- Partial match: Additional verification recommended\n- No match: High-risk, consider declining\n- Error: Retry or alternative verification\n\nImplement risk scoring based on match quality and customer history.';
-            } else if (sectionType.includes('cvv')) {
-                suggestion = '\n\nEnhanced CVV verification protocol:\n1. First attempt: Standard CVV check\n2. Failed attempt: Clear error message\n3. Second failure: Additional verification\n4. Third failure: Temporary block\n\nConsider implementing a progressive security approach.';
-            } else if (sectionType.includes('3d secure')) {
-                suggestion = '\n\nOptimize 3DS implementation:\n1. Risk-based triggering\n2. Clear customer communication\n3. Fallback options\n4. Performance monitoring\n\nBalance security with user experience.';
+            if (searchResults.length > 0) {
+                resultsDiv.innerHTML = `
+                    <h3>Search Results from Square Risk Manager Guide</h3>
+                    <div class="search-summary">Found ${searchResults.length} matching sections</div>
+                    ${searchResults.map(result => {
+                        let highlightedContent = result.content;
+                        let highlightedTitle = result.title;
+                        searchTerms.forEach(term => {
+                            const regex = new RegExp(`(${term})`, 'gi');
+                            highlightedContent = highlightedContent.replace(regex, '<span class="search-term-highlight">$1</span>');
+                            highlightedTitle = highlightedTitle.replace(regex, '<span class="search-term-highlight">$1</span>');
+                        });
+                        
+                        return `
+                            <div class="result-item">
+                                <div class="result-section">${highlightedTitle}</div>
+                                <div class="editable-content" contenteditable="true" data-section="${result.title}">${highlightedContent}</div>
+                                <div class="button-group">
+                                    <button class="save-button" onclick="saveContent('${result.title}')">Save Changes</button>
+                                    <button class="compare-button" onclick="compareContent('${result.title}')">Compare</button>
+                                    <button class="export-button" onclick="exportContent('${result.title}')">Export to Text</button>
+                                    <span class="save-status" id="save-status-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
+                                </div>
+                                <div class="comparison-view" id="comparison-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">
+                                    <div class="comparison-column">
+                                        <h4>Original Version</h4>
+                                        <div class="comparison-content original-version">${result.content}</div>
+                                    </div>
+                                    <div class="comparison-column">
+                                        <h4>Edited Version</h4>
+                                        <div class="comparison-content edited-version" id="edited-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">${result.content}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                `;
             } else {
-                suggestion = '\n\nConsider adding:\n1. Specific examples\n2. Common scenarios\n3. Best practices\n4. Troubleshooting steps\n\nEnhance documentation with practical guidance.';
+                resultsDiv.innerHTML = '<div class="no-results">No matching content found</div>';
             }
-
-            return suggestion;
         }
 
-        // Previous functions remain the same...
+        // Previous code continues...
     </script>
 </body>
 </html>
