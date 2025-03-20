@@ -753,14 +753,32 @@
         }
 
         function suggestBetterEdits(sectionTitle, searchQuery, originalContent) {
-            // Find the suggested-text element within the correct result item
-            const resultItem = Array.from(document.querySelectorAll('.result-item'))
-                .find(item => item.querySelector(`[data-section="${sectionTitle}"]`));
-            
-            if (!resultItem) return;
+            // First, find the correct result item that contains this section
+            const allResultItems = document.querySelectorAll('.result-item');
+            let targetResultItem = null;
 
-            const originalSuggestionSpan = resultItem.querySelector('.suggested-text');
-            let improvementsDiv = resultItem.querySelector('.suggestion-improvements');
+            // Debug log
+            console.log('Looking for section:', sectionTitle);
+            
+            for (const item of allResultItems) {
+                const sectionDiv = item.querySelector('.result-section');
+                if (sectionDiv && sectionDiv.textContent === sectionTitle) {
+                    targetResultItem = item;
+                    break;
+                }
+            }
+
+            if (!targetResultItem) {
+                console.error('Could not find result item for section:', sectionTitle);
+                return;
+            }
+
+            // Find the suggested-text span within this result item
+            const originalSuggestionSpan = targetResultItem.querySelector('.suggested-text');
+            if (!originalSuggestionSpan) {
+                console.error('Could not find suggestion span');
+                return;
+            }
 
             // Enhanced analysis of the search query and context
             const query = searchQuery.toLowerCase();
@@ -823,19 +841,15 @@
                 ];
             }
 
-            // Update the original suggestion with better suggestion
-            if (originalSuggestionSpan) {
-                originalSuggestionSpan.textContent = betterSuggestion;
+            // Remove any existing improvements div
+            const existingImprovements = targetResultItem.querySelector('.suggestion-improvements');
+            if (existingImprovements) {
+                existingImprovements.remove();
             }
 
-            // Add or update improvements list
-            if (!improvementsDiv) {
-                improvementsDiv = document.createElement('div');
-                improvementsDiv.className = 'suggestion-improvements';
-                // Insert after the suggested-text element
-                originalSuggestionSpan.parentNode.insertBefore(improvementsDiv, originalSuggestionSpan.nextSibling);
-            }
-
+            // Create improvements div
+            const improvementsDiv = document.createElement('div');
+            improvementsDiv.className = 'suggestion-improvements';
             improvementsDiv.innerHTML = `
                 <div class="suggestion-context">Improvements made:</div>
                 ${improvements.map(improvement => `
@@ -845,6 +859,12 @@
                     </div>
                 `).join('')}
             `;
+
+            // Update the suggestion text
+            originalSuggestionSpan.textContent = betterSuggestion;
+
+            // Insert improvements div after the suggested-text span
+            originalSuggestionSpan.insertAdjacentElement('afterend', improvementsDiv);
         }
 
         function compileContent(sectionTitle, originalContent, suggestedContent) {
