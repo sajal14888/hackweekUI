@@ -753,9 +753,14 @@
         }
 
         function suggestBetterEdits(sectionTitle, searchQuery, originalContent) {
-            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
-            const originalSuggestionSpan = document.querySelector(`[data-section="${sectionTitle}"]`).closest('.result-item').querySelector('.suggested-text');
-            const improvementsDiv = document.querySelector(`[data-section="${sectionTitle}"]`).closest('.result-item').querySelector('.suggestion-improvements');
+            // Find the suggested-text element within the correct result item
+            const resultItem = Array.from(document.querySelectorAll('.result-item'))
+                .find(item => item.querySelector(`[data-section="${sectionTitle}"]`));
+            
+            if (!resultItem) return;
+
+            const originalSuggestionSpan = resultItem.querySelector('.suggested-text');
+            let improvementsDiv = resultItem.querySelector('.suggestion-improvements');
 
             // Enhanced analysis of the search query and context
             const query = searchQuery.toLowerCase();
@@ -819,34 +824,27 @@
             }
 
             // Update the original suggestion with better suggestion
-            originalSuggestionSpan.innerHTML = betterSuggestion;
-
-            // Add improvements list below the suggestion
-            if (!improvementsDiv) {
-                const newImprovementsDiv = document.createElement('div');
-                newImprovementsDiv.className = 'suggestion-improvements';
-                originalSuggestionSpan.insertAdjacentElement('afterend', newImprovementsDiv);
-                
-                newImprovementsDiv.innerHTML = `
-                    <div class="suggestion-context">Improvements made:</div>
-                    ${improvements.map(improvement => `
-                        <div class="suggestion-improvement-item">
-                            <span class="improvement-icon">✓</span>
-                            <span>${improvement}</span>
-                        </div>
-                    `).join('')}
-                `;
-            } else {
-                improvementsDiv.innerHTML = `
-                    <div class="suggestion-context">Improvements made:</div>
-                    ${improvements.map(improvement => `
-                        <div class="suggestion-improvement-item">
-                            <span class="improvement-icon">✓</span>
-                            <span>${improvement}</span>
-                        </div>
-                    `).join('')}
-                `;
+            if (originalSuggestionSpan) {
+                originalSuggestionSpan.textContent = betterSuggestion;
             }
+
+            // Add or update improvements list
+            if (!improvementsDiv) {
+                improvementsDiv = document.createElement('div');
+                improvementsDiv.className = 'suggestion-improvements';
+                // Insert after the suggested-text element
+                originalSuggestionSpan.parentNode.insertBefore(improvementsDiv, originalSuggestionSpan.nextSibling);
+            }
+
+            improvementsDiv.innerHTML = `
+                <div class="suggestion-context">Improvements made:</div>
+                ${improvements.map(improvement => `
+                    <div class="suggestion-improvement-item">
+                        <span class="improvement-icon">✓</span>
+                        <span>${improvement}</span>
+                    </div>
+                `).join('')}
+            `;
         }
 
         function compileContent(sectionTitle, originalContent, suggestedContent) {
