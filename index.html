@@ -255,6 +255,8 @@
 
         .suggestion-actions {
             margin: 16px 0;
+            display: flex;
+            gap: 8px;
         }
 
         .compile-button {
@@ -272,7 +274,22 @@
             background-color: #7C3AED;
         }
 
-        .compiled-content {
+        .suggest-better-button {
+            background-color: #059669;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .suggest-better-button:hover {
+            background-color: #047857;
+        }
+
+        .compiled-content, .better-suggestion {
             margin-top: 16px;
             padding: 16px;
             background-color: #F8FAFC;
@@ -280,17 +297,39 @@
             border-radius: 8px;
         }
 
-        .compiled-content.hidden {
+        .compiled-content.hidden, .better-suggestion.hidden {
             display: none;
         }
 
-        .compiled-text {
+        .compiled-text, .better-suggestion-text {
             font-size: 14px;
             line-height: 1.6;
             color: #2C3E50;
             padding: 8px;
             background-color: #E8F5E9;
             border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .suggestion-improvements {
+            font-size: 13px;
+            color: #6B7280;
+            padding: 8px;
+            background-color: #F3F4F6;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .suggestion-improvement-item {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+
+        .improvement-icon {
+            color: #059669;
+            font-weight: bold;
         }
 
         .suggestion-explanation {
@@ -696,10 +735,18 @@
                             <button class="compile-button" onclick="compileContent('${sectionTitle}', \`${mostRelevantParagraph}\`, \`${suggestion}\`)">
                                 Compile Content
                             </button>
+                            <button class="suggest-better-button" onclick="suggestBetterEdits('${sectionTitle}', \`${searchQuery}\`, \`${mostRelevantParagraph}\`)">
+                                Suggest Better Edits
+                            </button>
                         </div>
                         <div id="compiled-content-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}" class="compiled-content hidden">
                             <div class="suggestion-context">Compiled version:</div>
                             <div class="compiled-text"></div>
+                        </div>
+                        <div id="better-suggestion-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}" class="better-suggestion hidden">
+                            <div class="suggestion-context">Enhanced suggestion:</div>
+                            <div class="better-suggestion-text"></div>
+                            <div class="suggestion-improvements"></div>
                         </div>
                     </div>
                     <div class="suggestion-explanation">
@@ -708,6 +755,89 @@
                     </div>
                 </div>
             `;
+        }
+
+        function suggestBetterEdits(sectionTitle, searchQuery, originalContent) {
+            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
+            const betterSuggestionDiv = document.getElementById(`better-suggestion-${safeTitleId}`);
+            const betterSuggestionText = betterSuggestionDiv.querySelector('.better-suggestion-text');
+            const improvementsDiv = betterSuggestionDiv.querySelector('.suggestion-improvements');
+
+            // Enhanced analysis of the search query and context
+            const query = searchQuery.toLowerCase();
+            const section = sectionTitle.toLowerCase();
+            let betterSuggestion = '';
+            let improvements = [];
+
+            // Extract specific parameters
+            const numbers = query.match(/\d+/g) || [];
+            const timeframes = query.match(/\d+\s*(?:hour|hr|day|month|week)s?/g) || [];
+            const actions = [];
+            if (query.includes('alert')) actions.push('alert');
+            if (query.includes('decline')) actions.push('decline');
+            if (query.includes('monitor')) actions.push('monitor');
+
+            // Section-specific enhanced suggestions
+            if (section.includes('payment velocity')) {
+                const transactionCount = numbers[0] || 'specified number of';
+                const timeFrame = timeframes[0] || '24-hour';
+                const actionTypes = actions.length > 0 ? actions.join(' and ') : 'monitor';
+
+                betterSuggestion = `Risk Manager's payment velocity rules can be configured to ${actionTypes} transactions when a single payment card exceeds ${transactionCount} transactions within a ${timeFrame} period. This helps prevent potential fraud while maintaining flexibility for legitimate high-frequency customers. You can adjust these thresholds based on your business patterns and risk tolerance.`;
+                
+                improvements = [
+                    'Added specific transaction count and time period',
+                    'Included both monitoring and action capabilities',
+                    'Added context about fraud prevention',
+                    'Mentioned business customization options',
+                    'Linked to legitimate customer considerations'
+                ];
+            } else if (section.includes('address verification')) {
+                betterSuggestion = `The Address Verification System (AVS) settings can be fine-tuned to ${
+                    query.includes('strict') ? 'enforce strict matching requirements for high-risk transactions while maintaining flexibility for trusted customers' :
+                    query.includes('international') ? 'handle international billing addresses with country-specific validation rules' :
+                    query.includes('bypass') ? 'allow exceptions for trusted customers while maintaining security for unknown buyers' :
+                    'balance security and customer experience based on your risk profile'
+                }. This enhanced verification process helps reduce fraudulent transactions while minimizing false declines.`;
+
+                improvements = [
+                    'Added risk-based verification logic',
+                    'Included customer trust considerations',
+                    'Balanced security with user experience',
+                    'Added fraud prevention context',
+                    'Mentioned false decline prevention'
+                ];
+            } else if (section.includes('alert')) {
+                betterSuggestion = `Risk Manager's alert system can be customized to provide ${
+                    query.includes('real-time') ? 'immediate notifications through multiple channels when suspicious activity is detected' :
+                    query.includes('email') ? 'detailed email alerts with transaction details and one-click action options' :
+                    query.includes('threshold') ? 'targeted alerts based on specific risk thresholds and business rules' :
+                    'comprehensive notifications based on your risk management preferences'
+                }. This allows for quick response to potential fraud while maintaining efficient operations.`;
+
+                improvements = [
+                    'Enhanced notification options',
+                    'Added action capabilities',
+                    'Included business context',
+                    'Mentioned response time importance',
+                    'Added operational efficiency consideration'
+                ];
+            }
+
+            // Update the UI with better suggestion
+            betterSuggestionText.innerHTML = betterSuggestion;
+            improvementsDiv.innerHTML = `
+                <div class="suggestion-context">Improvements made:</div>
+                ${improvements.map(improvement => `
+                    <div class="suggestion-improvement-item">
+                        <span class="improvement-icon">✓</span>
+                        <span>${improvement}</span>
+                    </div>
+                `).join('')}
+            `;
+
+            // Show the better suggestion section
+            betterSuggestionDiv.classList.remove('hidden');
         }
 
         function compileContent(sectionTitle, originalContent, suggestedContent) {
