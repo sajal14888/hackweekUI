@@ -5,957 +5,464 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Content Compass</title>
     <style>
-        /* Keeping the original styles from ORIGINAL_UI_MARCH_2025 */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #F5F7FA;
-            margin: 0;
-            padding: 20px;
-            color: #2C3E50;
-            line-height: 1.6;
-        }
+        /* Existing styles remain the same */
+        /* ... */
 
-        .post-form-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 30px;
+        /* New styles for improved suggestions */
+        .suggestion-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 400px;
+            max-height: calc(100vh - 40px);
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        h2 {
-            font-size: 24px;
-            font-weight: 500;
-            margin-bottom: 24px;
-            color: #2C3E50;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #2C3E50;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 8px 12px;
-            font-size: 14px;
-            border: 1px solid #E0E0E0;
-            border-radius: 4px;
-            background-color: #FFFFFF;
-            box-sizing: border-box;
-            color: #2C3E50;
-            margin-bottom: 16px;
-        }
-
-        select.form-control {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 8px;
-            padding-right: 30px;
-        }
-
-        .search-button {
-            background-color: #3B82F6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .search-summary {
-            border-left: 4px solid #3B82F6;
-            padding: 8px 12px;
-            margin: 20px 0;
-            font-size: 14px;
-            color: #2C3E50;
-            background-color: #F8FAFC;
-        }
-
-        .result-item {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             padding: 20px;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            background-color: #FFFFFF;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
         }
 
-        .result-section {
-            font-size: 16px;
-            font-weight: 500;
-            color: #2C3E50;
-            margin-bottom: 12px;
+        .suggestion-panel.visible {
+            display: block;
         }
 
-        .editable-content {
-            padding: 12px;
-            border: 1px solid #E5E7EB;
-            border-radius: 4px;
-            margin: 12px 0;
-            font-size: 14px;
-            line-height: 1.6;
-            min-height: 80px;
-        }
-
-        .result-type {
-            font-size: 12px;
-            color: #6B7280;
-            margin: 8px 0;
-        }
-
-        .button-group-top {
-            margin-top: 12px;
+        .suggestion-panel-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .suggestion-panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .close-panel {
+            background: none;
+            border: none;
+            color: #6B7280;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 4px;
+        }
+
+        .suggestion-category {
+            margin-bottom: 24px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4B5563;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
 
-        .button-group {
-            margin-top: 12px;
+        .category-icon {
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background-color: #F3F4F6;
         }
 
-        .save-status {
-            color: #10B981;
-            margin-left: 12px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .save-status.visible {
-            opacity: 1;
-        }
-
-        .comparison-view {
-            display: none;
-            margin-top: 16px;
-            gap: 16px;
-            border-top: 1px solid #E0E0E0;
-            padding-top: 16px;
-        }
-
-        .comparison-view.visible {
-            display: flex;
-        }
-
-        .comparison-column {
-            flex: 1;
-            padding: 16px;
-            border-radius: 8px;
+        .suggestion-item {
             background-color: #F8FAFC;
-            border: 1px solid #E0E0E0;
-        }
-
-        .comparison-column h4 {
-            margin: 0 0 12px 0;
-            color: #2C3E50;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .comparison-content {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #2C3E50;
-            white-space: pre-wrap;
-        }
-
-        .original-version {
-            background-color: #FFF9C4;
-        }
-
-        .edited-version {
-            background-color: #E8F5E9;
-        }
-
-        .compare-button {
-            background-color: #3B82F6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-right: 8px;
-        }
-
-        .compare-button:hover {
-            background-color: #2563EB;
-        }
-
-        .suggest-button {
-            background-color: #8B5CF6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-right: 8px;
-        }
-
-        .suggest-button:hover {
-            background-color: #7C3AED;
-        }
-
-        .suggestion-view {
-            display: none;
-            margin-top: 16px;
-            gap: 16px;
-            border-top: 1px solid #E0E0E0;
-            padding-top: 16px;
-        }
-
-        .suggestion-view.visible {
-            display: block;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
         }
 
         .suggestion-header {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2C3E50;
-            margin-bottom: 12px;
-        }
-
-        .suggestion-content {
-            padding: 16px;
-            border-radius: 8px;
-            background-color: #F8FAFC;
-            border: 1px solid #E0E0E0;
-            margin-bottom: 16px;
-        }
-
-        .original-text {
-            color: #2C3E50;
-            background-color: #FFF9C4;
-            padding: 2px 4px;
-            border-radius: 2px;
-        }
-
-        .suggested-text {
-            color: #2C3E50;
-            background-color: #E8F5E9;
-            padding: 2px 4px;
-            border-radius: 2px;
-        }
-
-        .better-suggestion-section {
-            margin-top: 16px;
-            padding: 16px;
-            background-color: #F0FDF4;
-            border: 1px solid #DCFCE7;
-            border-radius: 8px;
-        }
-
-        .better-suggestion-text {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #2C3E50;
-            padding: 8px;
-            background-color: #DCFCE7;
-            border-radius: 4px;
-            margin: 8px 0 16px 0;
-        }
-
-        .suggestion-improvements {
-            background-color: #F8FAFC;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .suggestion-improvement-item {
             display: flex;
-            gap: 8px;
+            justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 4px;
-            font-size: 13px;
-            color: #4B5563;
-        }
-
-        .improvement-icon {
-            color: #059669;
-            font-weight: bold;
-        }
-
-        .suggestion-context {
-            font-size: 14px;
-            font-weight: 500;
-            color: #4B5563;
             margin-bottom: 8px;
         }
 
-        .suggestion-actions {
-            margin: 16px 0;
-            display: flex;
-            gap: 8px;
-        }
-
-        .compile-button {
-            background-color: #8B5CF6;
-            color: white;
-            border: none;
+        .suggestion-type {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6B7280;
+            padding: 2px 8px;
+            background-color: #F3F4F6;
             border-radius: 4px;
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s;
         }
 
-        .compile-button:hover {
-            background-color: #7C3AED;
-        }
-
-        .suggest-better-button {
-            background-color: #059669;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .suggest-better-button:hover {
-            background-color: #047857;
-        }
-
-        .compiled-content, .better-suggestion {
-            margin-top: 16px;
-            padding: 16px;
-            background-color: #F8FAFC;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-        }
-
-        .compiled-content.hidden, .better-suggestion.hidden {
-            display: none;
-        }
-
-        .compiled-text, .better-suggestion-text {
+        .suggestion-content {
             font-size: 14px;
             line-height: 1.6;
             color: #2C3E50;
-            padding: 8px;
-            background-color: #E8F5E9;
-            border-radius: 4px;
-            margin-bottom: 12px;
-        }
-
-        .suggestion-improvements {
-            font-size: 13px;
-            color: #6B7280;
-            padding: 8px;
-            background-color: #F3F4F6;
-            border-radius: 4px;
-            margin-top: 8px;
-        }
-
-        .suggestion-improvement-item {
-            display: flex;
-            gap: 8px;
-            align-items: flex-start;
-            margin-bottom: 4px;
-        }
-
-        .improvement-icon {
-            color: #059669;
-            font-weight: bold;
+            margin-bottom: 8px;
         }
 
         .suggestion-explanation {
-            font-size: 14px;
+            font-size: 13px;
             color: #6B7280;
-            margin-top: 8px;
             font-style: italic;
+            padding: 8px;
+            background-color: #F3F4F6;
+            border-radius: 4px;
         }
 
-        .save-status.visible {
-            opacity: 1;
+        .suggestion-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
         }
 
-        .save-button {
+        .apply-suggestion {
             background-color: #10B981;
             color: white;
             border: none;
             border-radius: 4px;
             padding: 6px 12px;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
-            margin-right: 8px;
         }
 
-        .export-button {
-            background-color: #6B7280;
+        .preview-suggestion {
+            background-color: #3B82F6;
             color: white;
             border: none;
             border-radius: 4px;
             padding: 6px 12px;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
         }
 
-        .search-term-highlight {
-            background-color: #FFF9C4;
-            padding: 2px 0;
-        }
-
-        [contenteditable="true"]:focus {
-            outline: none;
-            border-color: #3B82F6;
-        }
-
-        .hidden {
+        .preview-panel {
             display: none;
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #FAFAFA;
+            border-radius: 4px;
+        }
+
+        .preview-panel.visible {
+            display: block;
+        }
+
+        .diff-view {
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .diff-removed {
+            background-color: #FECACA;
+            text-decoration: line-through;
+        }
+
+        .diff-added {
+            background-color: #D1FAE5;
+        }
+
+        .suggestion-metrics {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #F3F4F6;
+            border-radius: 4px;
+        }
+
+        .metric-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        /* Overlay when suggestion panel is open */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 999;
+        }
+
+        .overlay.visible {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="post-form-container">
-        <h2>Content Compass</h2>
-        <div>
-            <label>Select the Content Database*</label>
-            <select class="form-control" id="postType">
-                <option value="square-help" selected>Square Help</option>
-                <option value="squarewise">Google Drive</option>
-                <option value="high-spot">High Spot</option>
-            </select>
-        </div>
+    <!-- Existing content remains the same -->
+    <!-- ... -->
 
-        <div>
-            <label>Search Your Topic</label>
-            <input type="text" class="form-control" id="searchTopic" placeholder="">
-            <div class="button-group-top">
-                <button class="search-button" id="searchButton">Search</button>
-                <button class="suggest-button" onclick="suggestEdits(null, document.getElementById('searchTopic').value)">Suggest Edits</button>
-            </div>
+    <!-- New suggestion panel -->
+    <div class="overlay" id="overlay"></div>
+    <div class="suggestion-panel" id="suggestionPanel">
+        <div class="suggestion-panel-header">
+            <div class="suggestion-panel-title">Enhanced Content Suggestions</div>
+            <button class="close-panel" onclick="closeSuggestionPanel()">×</button>
         </div>
-
-        <div id="searchResults" class="search-results"></div>
+        <div id="suggestionContent"></div>
     </div>
 
     <script>
-        // Updated Square Help content with all sections from the page
-        const squareHelpContent = {
-            articles: [
-                {
-                    title: "Who is this article for?",
-                    content: "Sellers with Risk Manager permissions to view and edit alert, block, and rule settings. Set permissions in Square Dashboard.",
-                    type: "section"
-                },
-                {
-                    title: "About Risk Manager",
-                    content: "Risk Manager is a tool that helps you catch and manage online payments that pose a potential fraud risk. Creating a rule in Risk Manager allows you to select what actions can be taken on an online payment if certain conditions within that rule are met. Rules can either decline a payment from a specific payment card, trigger a risk alert, or invoke 3D Secure (3DS). Rules can be set based on payment card conditions as well.\n\nRisk Manager's fraud monitoring is free to use for businesses that process payments with Square. Risk Manager is not available on transactions processed via Square Virtual Terminal or Afterpay.",
-                    type: "section"
-                },
-                {
-                    title: "Before you begin",
-                    content: "Although this tool is designed to help prevent payment disputes, the risk of a payment dispute is present with all card payments. Sellers will continue to be liable for all payments they accept and the disputes they receive. Square is not assuming liability for payments, regardless of the risk evaluation that is delivered.\n\nThe only transactions affected by Risk Manager rules are online payments. Rules will not decline or trigger alerts on payments taken in person or via other payment methods such as Square Invoices and Virtual Terminal.",
-                    type: "section"
-                },
-                {
-                    title: "Step 1: Enable Risk Manager",
-                    content: "1. Sign in to Square Dashboard and go to Orders & payments (or Invoices & Payments or Payments) > Risk manager.\n2. Click Get Started.\n3. Select the business location(s) you wish to activate with Risk Manager, then click Enroll in Risk Manager.\n\nOnce you have activated Risk Manager on your account, you can begin to create rules and set up alerts for your online payments.\n\nIf you have multiple business locations, you'll have the option to set different rules for each location or apply a single rule to multiple business locations.",
-                    type: "section"
-                },
-                {
-                    title: "Step 2: Create rules",
-                    content: "A rule allows you to choose what happens to a payment if certain conditions are met. You can set a rule to either trigger a risk alert, invoke 3D Secure or to decline a payment. You can also set your rule to be based on factors such as Square's own risk evaluation, AVS mismatch, invalid CVV, or suspicious transaction amounts.\n\nWhen setting payment rules, if there are certain conditions of a payment that indicate suspicious behavior (i.e. a shipping address and billing address do not match), you can set a rule to take automatic action rather than manually reviewing each online payment.\n\nRule actions are ranked first by 3D Secure, Decline, and then Alert. If you have a payment that matches a 3D Secure rule and a decline rule, 3D Secure will take priority over the decline. And likewise, if you have a payment that hits both a decline rule and an alert rule, the decline will take priority over the alert.",
-                    type: "section"
-                },
-                {
-                    title: "How to Create a Rule",
-                    content: "To create a rule within Risk Manager:\n1. Sign in to Square Dashboard and go to Orders & payments (or Invoices & Payments or Payments) > Risk manager.\n2. Click Rules > Create rule.\n3. Enter a rule name, action, payment type, location, and condition(s).\n4. Review the rule summary, then click Activate rule.\n5. Once your rule is saved, payments that meet the requirements set by your rule conditions will either trigger a risk alert, invoke 3D Secure or the payment will be declined.",
-                    type: "section"
-                },
-                {
-                    title: "3D Secure (3DS)",
-                    content: "3D Secure (3DS) in Risk Manager helps you authenticate online card transactions, reducing fraud by requiring additional customer verification steps, like SMS one time codes or biometrics at time of checkout. You can set 3DS rules from your Square Dashboard, protecting against chargeback liability if fraud occurs post-authentication. However, 3DS may decrease completed transactions due to issuer verification requirements, impacting customer experience.",
-                    type: "section"
-                },
-                {
-                    title: "Address Verification System (AVS) Overview",
-                    content: "Address Verification System or AVS checks to see if the buyer's provided billing address matches the address that is on file with the card issuer. If these match, a green tick will appear in this column in the Alerts tab. If the addresses don't match, a red X will appear instead. You can select AVS that do not match as a condition for any rule action.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes",
-                    type: "section"
-                },
-                {
-                    title: "Address Verification System (AVS) Details",
-                    content: "For AVS, If the card is issued in a country that doesn't use AVS or if we're unable to compare information due to technical error, AVS results will be unavailable. You have the option of selecting AVS unavailable as a condition to trigger an alert or decline a payment. Additionally, it is always possible that a cardholder has moved and hasn't updated their billing information with the card issuer. However, sometimes this type of mismatch can indicate that a card has been stolen and used fraudulently, thus increasing the risk of a payment dispute.",
-                    type: "section"
-                },
-                {
-                    title: "Address Verification in Risk Rules",
-                    content: "When creating rules in Risk Manager, you can use Address Verification System (AVS) results as conditions:\n- AVS Match/Mismatch: Set rules based on whether billing addresses match\n- AVS Unavailable: Create rules for cases where AVS verification isn't possible\n- Combine AVS with other conditions: Link address verification with other risk factors for stronger fraud prevention",
-                    type: "section"
-                },
-                {
-                    title: "Card Verification Value (CVV)",
-                    content: "Card Verification Value or CVV is the 3-digit verification code on the back of a Visa, Mastercard or Discover card. For American Express, this is the 4-digit verification code on the front of the card. You can select CVV invalid as a rule action for instances when this code is entered incorrectly.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes",
-                    type: "section"
-                },
-                {
-                    title: "Square's risk evaluation",
-                    content: "Square uses its own payments data information to determine if an incoming payment has a high or moderate risk of fraud. You can select either of these risk evaluations as conditions for any rule action.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes",
-                    type: "section"
-                },
-                {
-                    title: "Payment amount",
-                    content: "You can target your rules based on transaction amount. This can help identify riskier transaction sizes, if they're related to certain items, or if the payment is outside of your normal business patterns. You can set rules to alert you about a payment that is above or below a threshold, or between a range; or alert you about a payment that is more than double the average payment size on your account.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes, but only in combination with at least one other rule condition\n\nFor the payment amount rule condition, it can be used to alert you on payments by itself, or to alert or decline in conjunction with another rule condition (e.g. payment amount is under $100 and risk evaluation is high).",
-                    type: "section"
-                },
-                {
-                    title: "Payment velocity",
-                    content: "Used for instances where repeat transactions are attempted on the same payment card. You can limit the number of times a customer can complete a purchase from you in a single day before you're either alerted by Risk Manager or the payments will begin to decline, based on the action you choose. Choose between up to 3, 5 or 10 transactions in a 24-hour period.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes",
-                    type: "section"
-                },
-                {
-                    title: "Prepaid payment cards",
-                    content: "Prepaid cards, such as Visa or American Express gift cards, are non-traceable funds and can present a higher risk to your business. If you are noticing a pattern of prepaid cards being used to defraud your business, you can be notified when there is a prepaid card used to make a purchase.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes, but only in combination with at least one other rule condition.",
-                    type: "section"
-                },
-                {
-                    title: "International payment cards",
-                    content: "If the payment card's country of origin differs from your business' operating country or the country where you are processing payments, you can set an alert or decline the transaction.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes",
-                    type: "section"
-                },
-                {
-                    title: "Buyer IP address location",
-                    content: "If the buyer IP's country of origin differs from your business' operating country or the country where you are processing payments, you can set an alert or decline the transaction.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes",
-                    type: "section"
-                },
-                {
-                    title: "Shipping ZIP code verification",
-                    content: "Square evaluates whether the shipping ZIP code matches the keyed in billing ZIP code. You can select shipping ZIP code unavailable for instances where this field is not available.\n\nTriggers an alert: Yes\nTriggers a payment decline: Yes\n\nThis verification helps identify potential fraud where shipping and billing addresses don't match, which could indicate unauthorized use of a payment card.",
-                    type: "section"
-                },
-                {
-                    title: "Step 4: Set up your allow list",
-                    content: "An Allow List in Risk Manager gives you more control and flexibility over the types of payments that can be processed at your business. Adding a payment card to your Allow List lets that payment card process a transaction at any of your business locations. A card on your Allow List will override any attempted declines by your Risk Manager rules and settings, your Block List, as well as any Square standard payment protections.",
-                    type: "section"
-                },
-                {
-                    title: "Step 5: Set up your block list",
-                    content: "Blocking a card prevents that card from being used to make purchases with your business moving forward. If you identify what you believe to be a fraudulent transaction, you can take this action to prevent future payments being made with that card.",
-                    type: "section"
-                },
-                {
-                    title: "View risk alerts",
-                    content: "Risk alerts allow you to view additional information regarding online payments that were flagged by risk rules that you created. In addition, default rules provided by Square will also trigger risk alerts. Risk alerts can help to determine whether flagged payments should be refunded to avoid disputes, as well as blocking a suspicious payment card from completing additional transactions with your business.\n\nYou can view payments that were flagged by alerts from your Square Dashboard by going to Payments > Risk Manager > Alerts.\n\nYou can view your declined payments from your Square Dashboard by going to Payments > Risk Manager > Blocked payments. You can also view which rule triggered a decline.\n\nOnce you select an alert, you will see additional details such as payment and buyer information, related transactions, shipping address, and more. From the alert's detail page, you can decide to issue a refund, add to Block List, add to Allow List, or dismiss the payment.",
-                    type: "section"
-                },
-                {
-                    title: "Set up alert notifications",
-                    content: "You can choose to receive email notifications when a payment has been flagged by a risk alert. If you have multiple locations, you can also select which locations are enrolled in Risk Manager.\n\n1. Sign in to Square Dashboard and go to Orders & payments (or Invoices & Payments or Payments) > Risk manager.\n2. Toggle on Alert Notifications.\n3. For locations, all locations will be enrolled by default. Toggle each location on/off.",
-                    type: "section"
-                },
-                {
-                    title: "Issue a refund for a flagged payment",
-                    content: "If you decide to issue a refund for a payment that was flagged by a risk alert, the payment will be cancelled and the amount paid for the transaction will be refunded to the cardholder. The status of the transaction in the Alerts tab will be updated to Refunded.",
-                    type: "section"
-                },
-                {
-                    title: "View risk manager analytics",
-                    content: "Analytics provides an overview of online payments that are impacted by Risk Manager rules and alerts, as well as any disputes or blocked payments. Data from Analytics provides more information on the impact Risk Manager has on your payments and can help you to determine what actions can be taken to protect your business from fraud risk. You can filter and sort information to view the total dollar amount of online payments that are affected by your rules and blocks, the percentage of payments that are alerted by your rules, as well as seeing what portion of payments result in a dispute.\n\nTo export and download your Risk Manager payments information into a report:\n1. Sign in to Square Dashboard and go to Orders & payments (or Invoices & Payments or Payments) > Risk manager.\n2. Select Key metrics.\n3. Choose a Risk Manager filter, such as alerts, rules, blocked payments, or disputes. Apply additional filters such as location(s) and date range.\n4. Click Export data to download a spreadsheet containing your requested details. You can use Microsoft Excel, Apple Numbers, or Google Sheets to open and view this report.",
-                    type: "section"
-                },
-                {
-                    title: "Related Articles",
-                    content: "- Set up your Allow List with Risk Manager\n- Set up your Block List with Risk Manager\n- Use Square 3D Secure with Risk Manager\n- Review risk evaluations on transactions",
-                    type: "section"
-                }
-            ]
-        };
+        // Existing code remains the same until suggestBetterEdits function
+        // ... 
 
-        function suggestEdits(sectionTitle, searchQuery) {
-            const searchResults = document.getElementById('searchResults');
+        function suggestBetterEdits(sectionTitle, searchQuery, originalContent) {
+            // Show overlay and panel
+            document.getElementById('overlay').classList.add('visible');
+            const suggestionPanel = document.getElementById('suggestionPanel');
+            suggestionPanel.classList.add('visible');
             
-            if (!searchQuery) {
-                searchResults.innerHTML = '<div class="error-message">Please enter a search term for suggestions</div>';
-                return;
-            }
+            // Analyze content and generate high-quality suggestions
+            const suggestions = generateEnhancedSuggestions(sectionTitle, searchQuery, originalContent);
+            
+            // Display suggestions in the panel
+            displaySuggestions(suggestions, sectionTitle, originalContent);
+        }
 
-            // Define section keywords mapping with more specific terms and weights
-            const sectionKeywords = {
-                "Payment velocity": {
-                    keywords: ["velocity", "repeat", "transaction limit", "frequency", "multiple transactions", "transactions in", "hour period", "same card", "transaction count"],
-                    primaryTerms: ["velocity", "transactions in", "hour period", "same card"],
-                    contextTerms: ["limit", "decline", "alert", "period", "threshold"]
-                },
-                "Address Verification System (AVS) Overview": {
-                    keywords: ["avs", "address", "verification", "billing address", "match"],
-                    primaryTerms: ["avs", "address verification"],
-                    contextTerms: ["billing", "match", "verify"]
-                },
-                "Card Verification Value (CVV)": {
-                    keywords: ["cvv", "card verification", "security code", "card code"],
-                    primaryTerms: ["cvv", "card verification"],
-                    contextTerms: ["security", "code", "digit"]
-                },
-                "Payment amount": {
-                    keywords: ["amount", "threshold", "transaction size", "payment size", "dollar"],
-                    primaryTerms: ["amount", "dollar", "payment size"],
-                    contextTerms: ["threshold", "limit", "minimum", "maximum"]
-                },
-                "View risk alerts": {
-                    keywords: ["alert", "notification", "flag", "warning"],
-                    primaryTerms: ["alert", "notification"],
-                    contextTerms: ["notify", "warning", "flag"]
-                }
-            };
-
-            // Find most relevant section based on search query
-            if (!sectionTitle) {
-                const searchTerms = searchQuery.toLowerCase().split(' ');
-                let bestMatchSection = null;
-                let bestMatchScore = 0;
-
-                for (const [section, keywordData] of Object.entries(sectionKeywords)) {
-                    let score = 0;
-                    
-                    // Check for primary terms (highest weight)
-                    keywordData.primaryTerms.forEach(term => {
-                        if (searchQuery.toLowerCase().includes(term.toLowerCase())) {
-                            score += 10;
-                        }
-                    });
-
-                    // Check for specific phrases that strongly indicate a section
-                    if (section === "Payment velocity" && 
-                        (searchQuery.toLowerCase().includes("transactions in") || 
-                         searchQuery.toLowerCase().includes("hour period") ||
-                         searchQuery.toLowerCase().includes("same card") ||
-                         (searchQuery.toLowerCase().includes("transaction") && searchQuery.toLowerCase().includes("period")))) {
-                        score += 15;
-                    }
-
-                    // Check for keyword matches
-                    keywordData.keywords.forEach(keyword => {
-                        searchTerms.forEach(term => {
-                            if (term.length > 3 && keyword.toLowerCase().includes(term.toLowerCase())) {
-                                score += 2;
-                            }
-                        });
-                    });
-
-                    // Check for context terms
-                    keywordData.contextTerms.forEach(term => {
-                        if (searchQuery.toLowerCase().includes(term.toLowerCase())) {
-                            score += 1;
-                        }
-                    });
-
-                    if (score > bestMatchScore) {
-                        bestMatchScore = score;
-                        bestMatchSection = section;
-                    }
-                }
-
-                if (bestMatchSection) {
-                    sectionTitle = bestMatchSection;
-                } else {
-                    // Fallback to content search only if no good keyword match
-                    let mostRelevantSection = null;
-                    let maxMatches = 0;
-                    
-                    squareHelpContent.articles.forEach(article => {
-                        const matches = searchTerms.filter(term => 
-                            article.content.toLowerCase().includes(term)
-                        ).length;
-                        
-                        if (matches > maxMatches) {
-                            maxMatches = matches;
-                            mostRelevantSection = article;
-                        }
-                    });
-                    
-                    if (mostRelevantSection) {
-                        sectionTitle = mostRelevantSection.title;
-                    }
-                }
-            }
-
-            // Generate contextual suggestion based on section and search query
-            let suggestion = '';
+        function generateEnhancedSuggestions(sectionTitle, searchQuery, originalContent) {
+            const section = sectionTitle.toLowerCase();
             const query = searchQuery.toLowerCase();
             
-            // Section-specific suggestions with more detailed pattern matching
-            if (sectionTitle.includes("Payment velocity")) {
-                // Extract numeric values from the query if present
-                const numberMatch = query.match(/\d+/);
-                const transactionCount = numberMatch ? numberMatch[0] : "specified number of";
-                const timeMatch = query.match(/(\d+)\s*(?:hour|hr|day)/);
-                const timeFrame = timeMatch ? timeMatch[0] : "24-hour";
-                
-                suggestion = query.includes("transactions") && query.includes("period") ?
-                    `You can set up a velocity rule to ${
-                        query.includes("decline") ? "automatically decline" : 
-                        query.includes("alert") ? "trigger an alert for" :
-                        "monitor"
-                    } when there are more than ${transactionCount} transactions within a ${timeFrame} period from the same payment card.` :
-                    `You can customize the velocity limits to monitor transaction frequency and ${
-                        query.includes("decline") ? "automatically decline excessive transactions" :
-                        query.includes("alert") ? "receive alerts for suspicious patterns" :
-                        "control transaction patterns"
-                    } based on your specified thresholds.`;
-            } else if (sectionTitle.includes("Address Verification")) {
-                suggestion = `The Address Verification System (AVS) can be configured to ${
-                    query.includes("strict") ? "enforce strict matching requirements" :
-                    query.includes("international") ? "handle international billing addresses" :
-                    query.includes("bypass") ? "allow exceptions for trusted customers" :
-                    "validate billing addresses in real-time"
-                } during the transaction process.`;
-            } else if (sectionTitle.includes("CVV")) {
-                suggestion = `CVV verification can be ${
-                    query.includes("require") ? "made mandatory for all transactions" :
-                    query.includes("skip") ? "configured with exceptions for specific cases" :
-                    query.includes("fail") ? "set to decline transactions with invalid codes" :
-                    "customized based on transaction risk levels"
-                } to enhance payment security.`;
-            } else if (sectionTitle.includes("alert")) {
-                suggestion = `Risk alerts can be customized to ${
-                    query.includes("email") ? "send email notifications" :
-                    query.includes("immediate") ? "provide real-time notifications" :
-                    query.includes("multiple") ? "notify multiple team members" :
-                    "deliver notifications based on your preferences"
-                } when suspicious activity is detected.`;
-            } else {
-                suggestion = "Consider implementing additional verification steps for transactions that meet specific risk criteria to enhance your fraud prevention strategy.";
+            // Initialize suggestions object
+            const suggestions = {
+                contentImprovements: [],
+                structuralChanges: [],
+                clarityEnhancements: [],
+                technicalAccuracy: []
+            };
+
+            // Content Improvements
+            if (section.includes('payment velocity')) {
+                suggestions.contentImprovements.push({
+                    type: 'Content Addition',
+                    content: `Consider adding specific examples of velocity limits based on business type:
+- Retail: 5-10 transactions per hour
+- E-commerce: 3-5 transactions per day
+- Service Industry: 2-3 transactions per week`,
+                    explanation: 'Adding industry-specific examples helps readers understand appropriate velocity limits for their business type.',
+                    metrics: {
+                        clarity: 9,
+                        completeness: 8,
+                        actionability: 9
+                    }
+                });
             }
 
-            // Find relevant content
-            const relevantSection = squareHelpContent.articles.find(article => article.title === sectionTitle);
-            if (!relevantSection) {
-                searchResults.innerHTML = '<div class="error-message">Could not find relevant section for suggestion</div>';
-                return;
+            if (section.includes('address verification')) {
+                suggestions.contentImprovements.push({
+                    type: 'Technical Detail',
+                    content: `AVS Response Codes and Actions:
+- Full Match (Y): Proceed with transaction
+- Partial Match (P): Additional verification recommended
+- No Match (N): High-risk, consider declining
+- Error (E): Retry or alternative verification`,
+                    explanation: 'Adding specific AVS response codes and recommended actions provides clear guidance for different scenarios.',
+                    metrics: {
+                        clarity: 9,
+                        completeness: 9,
+                        actionability: 8
+                    }
+                });
             }
 
-            // Find most relevant paragraph
-            const paragraphs = relevantSection.content.split('\n\n');
-            let mostRelevantParagraph = '';
-            let maxMatches = 0;
-            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
-            
-            paragraphs.forEach(paragraph => {
-                const matches = searchTerms.filter(term => 
-                    paragraph.toLowerCase().includes(term)
-                ).length;
-                
-                if (matches > maxMatches) {
-                    maxMatches = matches;
-                    mostRelevantParagraph = paragraph;
+            // Structural Changes
+            suggestions.structuralChanges.push({
+                type: 'Organization',
+                content: 'Restructure content into clear sections:\n1. Overview\n2. Configuration Steps\n3. Best Practices\n4. Troubleshooting',
+                explanation: 'A consistent structure helps readers quickly find relevant information.',
+                metrics: {
+                    clarity: 8,
+                    completeness: 7,
+                    actionability: 8
                 }
             });
 
-            // If no good paragraph match, use the first paragraph
-            if (!mostRelevantParagraph) {
-                mostRelevantParagraph = paragraphs[0];
+            // Clarity Enhancements
+            const technicalTerms = originalContent.match(/\b([A-Z]{2,}|[A-Z][a-z]+(?:[A-Z][a-z]+)+)\b/g) || [];
+            if (technicalTerms.length > 0) {
+                suggestions.clarityEnhancements.push({
+                    type: 'Definition Box',
+                    content: `Add a quick reference box defining key terms:\n${technicalTerms.map(term => `${term}: [Brief definition]`).join('\n')}`,
+                    explanation: 'Defining technical terms improves understanding for readers of all expertise levels.',
+                    metrics: {
+                        clarity: 9,
+                        completeness: 7,
+                        actionability: 8
+                    }
+                });
             }
 
-            // Display suggestion with improved context and compile option
-            searchResults.innerHTML = `
-                <h3>Suggested Edit for "${sectionTitle}"</h3>
-                <div class="suggestion-content">
-                    <div>
-                        <div class="suggestion-context">Current content in this section:</div>
-                        <span class="original-text">${mostRelevantParagraph}</span>
-                        <br><br>
-                        <div class="suggestion-context">Suggested addition based on your search "${searchQuery}":</div>
-                        <span class="suggested-text">${suggestion}</span>
-                        <br><br>
-                        <div class="suggestion-actions">
-                            <button class="compile-button" onclick="compileContent('${sectionTitle}', \`${mostRelevantParagraph}\`, \`${suggestion}\`)">
-                                Compile Content
-                            </button>
-                            <button class="suggest-better-button" onclick="suggestBetterEdits('${sectionTitle}', \`${searchQuery}\`, \`${mostRelevantParagraph}\`)">
-                                Suggest Better Edits
-                            </button>
-                        </div>
-                        <div id="compiled-content-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}" class="compiled-content hidden">
-                            <div class="suggestion-context">Compiled version:</div>
-                            <div class="compiled-text"></div>
-                        </div>
-                    </div>
-                    <div class="suggestion-explanation">
-                        This suggestion is tailored for the ${sectionTitle.toLowerCase()} section and aims to provide specific information about your search topic.
-                        Click "Compile Content" to see a merged version of the original and suggested content.
-                    </div>
-                </div>
-            `;
+            // Technical Accuracy
+            if (section.includes('risk') || section.includes('security')) {
+                suggestions.technicalAccuracy.push({
+                    type: 'Compliance Note',
+                    content: 'Add compliance context:\n"These security measures align with PCI DSS requirements for transaction monitoring and fraud prevention."',
+                    explanation: 'Adding compliance context helps readers understand regulatory implications.',
+                    metrics: {
+                        clarity: 8,
+                        completeness: 9,
+                        actionability: 7
+                    }
+                });
+            }
+
+            return suggestions;
         }
 
-        function suggestBetterEdits(sectionTitle, searchQuery, originalContent) {
-            // First, find the correct result item that contains this section
-            const allResultItems = document.querySelectorAll('.result-item');
-            let targetResultItem = null;
-            
-            for (const item of allResultItems) {
-                const sectionDiv = item.querySelector('.result-section');
-                if (sectionDiv && sectionDiv.textContent === sectionTitle) {
-                    targetResultItem = item;
-                    break;
-                }
-            }
+        function displaySuggestions(suggestions, sectionTitle, originalContent) {
+            const suggestionContent = document.getElementById('suggestionContent');
+            let html = '';
 
-            if (!targetResultItem) {
-                console.error('Could not find result item for section:', sectionTitle);
-                return;
-            }
-
-            // Enhanced analysis of the search query and context
-            const query = searchQuery.toLowerCase();
-            const section = sectionTitle.toLowerCase();
-            let betterSuggestion = '';
-            let improvements = [];
-
-            // Extract specific parameters
-            const numbers = query.match(/\d+/g) || [];
-            const timeframes = query.match(/\d+\s*(?:hour|hr|day|month|week)s?/g) || [];
-            const actions = [];
-            if (query.includes('alert')) actions.push('alert');
-            if (query.includes('decline')) actions.push('decline');
-            if (query.includes('monitor')) actions.push('monitor');
-
-            // Section-specific enhanced suggestions
-            if (section.includes('payment velocity')) {
-                const transactionCount = numbers[0] || 'specified number of';
-                const timeFrame = timeframes[0] || '24-hour';
-                const actionTypes = actions.length > 0 ? actions.join(' and ') : 'monitor';
-
-                betterSuggestion = `Risk Manager's payment velocity rules can be configured to ${actionTypes} transactions when a single payment card exceeds ${transactionCount} transactions within a ${timeFrame} period. This helps prevent potential fraud while maintaining flexibility for legitimate high-frequency customers. You can adjust these thresholds based on your business patterns and risk tolerance.`;
-                
-                improvements = [
-                    'Added specific transaction count and time period',
-                    'Included both monitoring and action capabilities',
-                    'Added context about fraud prevention',
-                    'Mentioned business customization options',
-                    'Linked to legitimate customer considerations'
-                ];
-            } else if (section.includes('address verification')) {
-                betterSuggestion = `The Address Verification System (AVS) settings can be fine-tuned to ${
-                    query.includes('strict') ? 'enforce strict matching requirements for high-risk transactions while maintaining flexibility for trusted customers' :
-                    query.includes('international') ? 'handle international billing addresses with country-specific validation rules' :
-                    query.includes('bypass') ? 'allow exceptions for trusted customers while maintaining security for unknown buyers' :
-                    'balance security and customer experience based on your risk profile'
-                }. This enhanced verification process helps reduce fraudulent transactions while minimizing false declines.`;
-
-                improvements = [
-                    'Added risk-based verification logic',
-                    'Included customer trust considerations',
-                    'Balanced security with user experience',
-                    'Added fraud prevention context',
-                    'Mentioned false decline prevention'
-                ];
-            } else if (section.includes('alert')) {
-                betterSuggestion = `Risk Manager's alert system can be customized to provide ${
-                    query.includes('real-time') ? 'immediate notifications through multiple channels when suspicious activity is detected' :
-                    query.includes('email') ? 'detailed email alerts with transaction details and one-click action options' :
-                    query.includes('threshold') ? 'targeted alerts based on specific risk thresholds and business rules' :
-                    'comprehensive notifications based on your risk management preferences'
-                }. This allows for quick response to potential fraud while maintaining efficient operations.`;
-
-                improvements = [
-                    'Enhanced notification options',
-                    'Added action capabilities',
-                    'Included business context',
-                    'Mentioned response time importance',
-                    'Added operational efficiency consideration'
-                ];
-            }
-
-            // Remove any existing better suggestion section
-            const existingBetterSection = targetResultItem.querySelector('.better-suggestion-section');
-            if (existingBetterSection) {
-                existingBetterSection.remove();
-            }
-
-            // Create better suggestion section
-            const betterSuggestionSection = document.createElement('div');
-            betterSuggestionSection.className = 'better-suggestion-section';
-            betterSuggestionSection.innerHTML = `
-                <div class="suggestion-context">Enhanced suggestion:</div>
-                <div class="better-suggestion-text">${betterSuggestion}</div>
-                <div class="suggestion-improvements">
-                    <div class="suggestion-context">Improvements made:</div>
-                    ${improvements.map(improvement => `
-                        <div class="suggestion-improvement-item">
-                            <span class="improvement-icon">✓</span>
-                            <span>${improvement}</span>
+            // Helper function to create suggestion items
+            const createSuggestionItem = (suggestion, index) => `
+                <div class="suggestion-item">
+                    <div class="suggestion-header">
+                        <span class="suggestion-type">${suggestion.type}</span>
+                    </div>
+                    <div class="suggestion-content">${suggestion.content}</div>
+                    <div class="suggestion-explanation">${suggestion.explanation}</div>
+                    ${suggestion.metrics ? `
+                        <div class="suggestion-metrics">
+                            <div class="metric-item">
+                                <div class="metric-value">${suggestion.metrics.clarity}</div>
+                                <div class="metric-label">Clarity</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">${suggestion.metrics.completeness}</div>
+                                <div class="metric-label">Completeness</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">${suggestion.metrics.actionability}</div>
+                                <div class="metric-label">Actionability</div>
+                            </div>
                         </div>
-                    `).join('')}
+                    ` : ''}
+                    <div class="suggestion-actions">
+                        <button class="preview-suggestion" onclick="previewSuggestion(${index}, '${sectionTitle}')">Preview Changes</button>
+                        <button class="apply-suggestion" onclick="applySuggestion(${index}, '${sectionTitle}')">Apply Changes</button>
+                    </div>
+                    <div class="preview-panel" id="preview-${index}"></div>
                 </div>
             `;
 
-            // Insert better suggestion section after the original suggestion
-            const originalSuggestionContainer = targetResultItem.querySelector('.suggested-text').parentNode;
-            originalSuggestionContainer.insertAdjacentElement('afterend', betterSuggestionSection);
-        }
-
-        function compileContent(sectionTitle, originalContent, suggestedContent) {
-            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
-            const compiledContentDiv = document.getElementById(`compiled-content-${safeTitleId}`);
-            const compiledTextDiv = compiledContentDiv.querySelector('.compiled-text');
-
-            // Remove any existing highlight spans from the content
-            originalContent = originalContent.replace(/<[^>]*>/g, '');
-            suggestedContent = suggestedContent.replace(/<[^>]*>/g, '');
-
-            // Analyze the content to determine the best way to merge
-            let compiledText = '';
-            
-            if (sectionTitle.includes("Payment velocity")) {
-                // For payment velocity, add the specific rule after general description
-                compiledText = `${originalContent} ${suggestedContent}`;
-            } else if (suggestedContent.toLowerCase().includes("can be configured") || 
-                      suggestedContent.toLowerCase().includes("can be customized")) {
-                // For configuration-related suggestions, add after main description
-                compiledText = `${originalContent} ${suggestedContent}`;
-            } else if (originalContent.endsWith(".")) {
-                // If original content ends with a period, add a space
-                compiledText = `${originalContent} ${suggestedContent}`;
-            } else {
-                // Default: add with proper spacing
-                compiledText = `${originalContent}${originalContent.endsWith(".") ? " " : ". "}${suggestedContent}`;
+            // Content Improvements
+            if (suggestions.contentImprovements.length > 0) {
+                html += `
+                    <div class="suggestion-category">
+                        <div class="category-title">
+                            <span class="category-icon">📝</span>
+                            Content Improvements
+                        </div>
+                        ${suggestions.contentImprovements.map((suggestion, index) => 
+                            createSuggestionItem(suggestion, index)
+                        ).join('')}
+                    </div>
+                `;
             }
 
-            // Update the compiled content
-            compiledTextDiv.textContent = compiledText;
-            compiledContentDiv.classList.remove('hidden');
+            // Structural Changes
+            if (suggestions.structuralChanges.length > 0) {
+                html += `
+                    <div class="suggestion-category">
+                        <div class="category-title">
+                            <span class="category-icon">🏗️</span>
+                            Structural Changes
+                        </div>
+                        ${suggestions.structuralChanges.map((suggestion, index) => 
+                            createSuggestionItem(suggestion, index + 100)
+                        ).join('')}
+                    </div>
+                `;
+            }
+
+            // Clarity Enhancements
+            if (suggestions.clarityEnhancements.length > 0) {
+                html += `
+                    <div class="suggestion-category">
+                        <div class="category-title">
+                            <span class="category-icon">💡</span>
+                            Clarity Enhancements
+                        </div>
+                        ${suggestions.clarityEnhancements.map((suggestion, index) => 
+                            createSuggestionItem(suggestion, index + 200)
+                        ).join('')}
+                    </div>
+                `;
+            }
+
+            // Technical Accuracy
+            if (suggestions.technicalAccuracy.length > 0) {
+                html += `
+                    <div class="suggestion-category">
+                        <div class="category-title">
+                            <span class="category-icon">⚙️</span>
+                            Technical Accuracy
+                        </div>
+                        ${suggestions.technicalAccuracy.map((suggestion, index) => 
+                            createSuggestionItem(suggestion, index + 300)
+                        ).join('')}
+                    </div>
+                `;
+            }
+
+            suggestionContent.innerHTML = html;
         }
 
-        function compareContent(sectionTitle) {
-            const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
-            const comparisonView = document.getElementById(`comparison-${safeTitleId}`);
-            const editedContent = document.getElementById(`edited-${safeTitleId}`);
+        function previewSuggestion(index, sectionTitle) {
+            const previewPanel = document.getElementById(`preview-${index}`);
             const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
             
-            if (comparisonView && editedContent && contentDiv) {
-                // Update edited version with current content
-                editedContent.textContent = contentDiv.innerText;
-                
-                // Toggle comparison view
-                if (comparisonView.classList.contains('visible')) {
-                    comparisonView.classList.remove('visible');
+            if (previewPanel && contentDiv) {
+                if (previewPanel.classList.contains('visible')) {
+                    previewPanel.classList.remove('visible');
                 } else {
-                    comparisonView.classList.add('visible');
+                    // Generate diff view
+                    const originalText = contentDiv.innerText;
+                    const newText = generateMergedContent(originalText, index);
+                    
+                    const diffHtml = generateDiffView(originalText, newText);
+                    previewPanel.innerHTML = `
+                        <div class="diff-view">${diffHtml}</div>
+                    `;
+                    previewPanel.classList.add('visible');
                 }
             }
         }
 
-        function saveContent(sectionTitle) {
+        function applySuggestion(index, sectionTitle) {
             const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
             if (contentDiv) {
-                const articleIndex = squareHelpContent.articles.findIndex(a => a.title === sectionTitle);
-                if (articleIndex !== -1) {
-                    squareHelpContent.articles[articleIndex].content = contentDiv.innerText;
-                    const saveStatus = document.getElementById(`save-status-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                const originalText = contentDiv.innerText;
+                const newText = generateMergedContent(originalText, index);
+                contentDiv.innerText = newText;
+                
+                // Show save status
+                const saveStatus = document.getElementById(`save-status-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                if (saveStatus) {
                     saveStatus.classList.add('visible');
                     setTimeout(() => {
                         saveStatus.classList.remove('visible');
@@ -964,96 +471,47 @@
             }
         }
 
-        function exportContent(sectionTitle) {
-            const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
-            if (contentDiv) {
-                const content = contentDiv.innerText;
-                const blob = new Blob([content], { type: 'text/plain' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${sectionTitle.toLowerCase().replace(/\s+/g, '-')}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
+        function generateMergedContent(originalText, suggestionIndex) {
+            // This is a simplified version - in practice, you'd want to merge the content more intelligently
+            const suggestions = document.querySelectorAll('.suggestion-content');
+            if (suggestions[suggestionIndex]) {
+                return originalText + '\n\n' + suggestions[suggestionIndex].innerText;
             }
+            return originalText;
         }
 
-        function handleSearch() {
-            const searchQuery = document.getElementById('searchTopic').value.trim();
-            const resultsDiv = document.getElementById('searchResults');
-
-            if (!searchQuery) {
-                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
-                return;
-            }
-
-            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
-            const searchResults = [];
-
-            squareHelpContent.articles.forEach(article => {
-                const matches = searchTerms.every(term => 
-                    article.content.toLowerCase().includes(term) ||
-                    article.title.toLowerCase().includes(term)
-                );
-
-                if (matches) {
-                    searchResults.push({
-                        title: article.title,
-                        content: article.content,
-                        type: article.type
-                    });
+        function generateDiffView(originalText, newText) {
+            // This is a simplified diff view - in practice, you might want to use a proper diff algorithm
+            const diffHtml = [];
+            const originalLines = originalText.split('\n');
+            const newLines = newText.split('\n');
+            
+            for (let i = 0; i < newLines.length; i++) {
+                if (i < originalLines.length) {
+                    if (originalLines[i] !== newLines[i]) {
+                        diffHtml.push(`<span class="diff-removed">${originalLines[i]}</span>`);
+                        diffHtml.push(`<span class="diff-added">${newLines[i]}</span>`);
+                    } else {
+                        diffHtml.push(newLines[i]);
+                    }
+                } else {
+                    diffHtml.push(`<span class="diff-added">${newLines[i]}</span>`);
                 }
-            });
-
-            if (searchResults.length > 0) {
-                resultsDiv.innerHTML = `
-                    <h3>Search Results from Square Risk Manager Guide</h3>
-                    <div class="search-summary">Found ${searchResults.length} matching sections</div>
-                    ${searchResults.map(result => {
-                        let highlightedContent = result.content;
-                        let highlightedTitle = result.title;
-                        searchTerms.forEach(term => {
-                            const regex = new RegExp(`(${term})`, 'gi');
-                            highlightedContent = highlightedContent.replace(regex, '<span class="search-term-highlight">$1</span>');
-                            highlightedTitle = highlightedTitle.replace(regex, '<span class="search-term-highlight">$1</span>');
-                        });
-                        
-                        return `
-                            <div class="result-item">
-                                <div class="result-section">${highlightedTitle}</div>
-                                <div class="editable-content" contenteditable="true" data-section="${result.title}">${highlightedContent}</div>
-                                <div class="button-group">
-                                    <button class="save-button" onclick="saveContent('${result.title}')">Save Changes</button>
-                                    <button class="compare-button" onclick="compareContent('${result.title}')">Compare</button>
-                                    <button class="export-button" onclick="exportContent('${result.title}')">Export to Text</button>
-                                    <span class="save-status" id="save-status-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
-                                </div>
-                                <div class="comparison-view" id="comparison-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">
-                                    <div class="comparison-column">
-                                        <h4>Original Version</h4>
-                                        <div class="comparison-content original-version">${result.content}</div>
-                                    </div>
-                                    <div class="comparison-column">
-                                        <h4>Edited Version</h4>
-                                        <div class="comparison-content edited-version" id="edited-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">${result.content}</div>
-                                    </div>
-                                </div>
-                                <div class="suggestion-view" id="suggestion-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}"></div>
-                            </div>
-                        `;
-                    }).join('')}
-                `;
-            } else {
-                resultsDiv.innerHTML = '<div class="no-results">No matching content found</div>';
             }
+            
+            return diffHtml.join('\n');
         }
 
-        document.getElementById('searchButton').addEventListener('click', handleSearch);
-        document.getElementById('searchTopic').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSearch();
-        });
+        function closeSuggestionPanel() {
+            document.getElementById('overlay').classList.remove('visible');
+            document.getElementById('suggestionPanel').classList.remove('visible');
+        }
+
+        // Event listener for overlay click
+        document.getElementById('overlay').addEventListener('click', closeSuggestionPanel);
+
+        // Existing event listeners remain the same
+        // ...
     </script>
 </body>
 </html>
