@@ -743,11 +743,6 @@
                             <div class="suggestion-context">Compiled version:</div>
                             <div class="compiled-text"></div>
                         </div>
-                        <div id="better-suggestion-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}" class="better-suggestion hidden">
-                            <div class="suggestion-context">Enhanced suggestion:</div>
-                            <div class="better-suggestion-text"></div>
-                            <div class="suggestion-improvements"></div>
-                        </div>
                     </div>
                     <div class="suggestion-explanation">
                         This suggestion is tailored for the ${sectionTitle.toLowerCase()} section and aims to provide specific information about your search topic.
@@ -759,9 +754,8 @@
 
         function suggestBetterEdits(sectionTitle, searchQuery, originalContent) {
             const safeTitleId = sectionTitle.replace(/[^a-zA-Z0-9]/g, '-');
-            const betterSuggestionDiv = document.getElementById(`better-suggestion-${safeTitleId}`);
-            const betterSuggestionText = betterSuggestionDiv.querySelector('.better-suggestion-text');
-            const improvementsDiv = betterSuggestionDiv.querySelector('.suggestion-improvements');
+            const originalSuggestionSpan = document.querySelector(`[data-section="${sectionTitle}"]`).closest('.result-item').querySelector('.suggested-text');
+            const improvementsDiv = document.querySelector(`[data-section="${sectionTitle}"]`).closest('.result-item').querySelector('.suggestion-improvements');
 
             // Enhanced analysis of the search query and context
             const query = searchQuery.toLowerCase();
@@ -824,20 +818,35 @@
                 ];
             }
 
-            // Update the UI with better suggestion
-            betterSuggestionText.innerHTML = betterSuggestion;
-            improvementsDiv.innerHTML = `
-                <div class="suggestion-context">Improvements made:</div>
-                ${improvements.map(improvement => `
-                    <div class="suggestion-improvement-item">
-                        <span class="improvement-icon">✓</span>
-                        <span>${improvement}</span>
-                    </div>
-                `).join('')}
-            `;
+            // Update the original suggestion with better suggestion
+            originalSuggestionSpan.innerHTML = betterSuggestion;
 
-            // Show the better suggestion section
-            betterSuggestionDiv.classList.remove('hidden');
+            // Add improvements list below the suggestion
+            if (!improvementsDiv) {
+                const newImprovementsDiv = document.createElement('div');
+                newImprovementsDiv.className = 'suggestion-improvements';
+                originalSuggestionSpan.insertAdjacentElement('afterend', newImprovementsDiv);
+                
+                newImprovementsDiv.innerHTML = `
+                    <div class="suggestion-context">Improvements made:</div>
+                    ${improvements.map(improvement => `
+                        <div class="suggestion-improvement-item">
+                            <span class="improvement-icon">✓</span>
+                            <span>${improvement}</span>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                improvementsDiv.innerHTML = `
+                    <div class="suggestion-context">Improvements made:</div>
+                    ${improvements.map(improvement => `
+                        <div class="suggestion-improvement-item">
+                            <span class="improvement-icon">✓</span>
+                            <span>${improvement}</span>
+                        </div>
+                    `).join('')}
+                `;
+            }
         }
 
         function compileContent(sectionTitle, originalContent, suggestedContent) {
