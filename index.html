@@ -246,6 +246,13 @@
             border-radius: 2px;
         }
 
+        .suggestion-context {
+            font-size: 14px;
+            font-weight: 500;
+            color: #4B5563;
+            margin-bottom: 8px;
+        }
+
         .suggestion-explanation {
             font-size: 14px;
             color: #6B7280;
@@ -452,42 +459,118 @@
         function suggestEdits(sectionTitle, searchQuery) {
             const searchResults = document.getElementById('searchResults');
             
-            // Find most relevant section if sectionTitle is null
-            if (!sectionTitle) {
-                const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
-                let mostRelevantSection = null;
-                let maxMatches = 0;
-                
-                squareHelpContent.articles.forEach(article => {
-                    const matches = searchTerms.filter(term => 
-                        article.content.toLowerCase().includes(term) ||
-                        article.title.toLowerCase().includes(term)
-                    ).length;
-                    
-                    if (matches > maxMatches) {
-                        maxMatches = matches;
-                        mostRelevantSection = article;
-                    }
-                });
-                
-                if (mostRelevantSection) {
-                    sectionTitle = mostRelevantSection.title;
-                }
-            }
-
             if (!searchQuery) {
                 searchResults.innerHTML = '<div class="error-message">Please enter a search term for suggestions</div>';
                 return;
             }
 
-            // Generate suggestion based on search query
+            // Define section keywords mapping
+            const sectionKeywords = {
+                "Address Verification System (AVS) Overview": ["avs", "address", "verification", "billing address", "match"],
+                "Card Verification Value (CVV)": ["cvv", "card verification", "security code", "card code"],
+                "Payment velocity": ["velocity", "repeat", "transaction limit", "frequency", "multiple transactions"],
+                "Payment amount": ["amount", "threshold", "transaction size", "payment size", "dollar"],
+                "Prepaid payment cards": ["prepaid", "gift card", "gift cards", "non-traceable"],
+                "International payment cards": ["international", "country", "foreign", "cross-border"],
+                "Buyer IP address location": ["ip", "location", "geolocation", "country origin"],
+                "Shipping ZIP code verification": ["shipping", "zip", "postal", "address match"],
+                "View risk alerts": ["alert", "notification", "flag", "warning"],
+                "Set up alert notifications": ["notification", "email", "alert setup", "configure alerts"],
+                "Step 2: Create rules": ["rule", "condition", "create rule", "setup rule"],
+                "3D Secure (3DS)": ["3d", "3ds", "secure", "authentication"],
+                "Square's risk evaluation": ["risk", "evaluation", "fraud", "suspicious"]
+            };
+
+            // Find most relevant section based on search query
+            if (!sectionTitle) {
+                const searchTerms = searchQuery.toLowerCase().split(' ');
+                let bestMatchSection = null;
+                let bestMatchScore = 0;
+
+                for (const [section, keywords] of Object.entries(sectionKeywords)) {
+                    let score = 0;
+                    searchTerms.forEach(term => {
+                        // Direct keyword match
+                        if (keywords.some(keyword => keyword.includes(term))) {
+                            score += 2;
+                        }
+                        // Partial keyword match
+                        if (keywords.some(keyword => keyword.includes(term) || term.includes(keyword))) {
+                            score += 1;
+                        }
+                    });
+
+                    if (score > bestMatchScore) {
+                        bestMatchScore = score;
+                        bestMatchSection = section;
+                    }
+                }
+
+                if (bestMatchSection) {
+                    sectionTitle = bestMatchSection;
+                } else {
+                    // If no good keyword match, fall back to content search
+                    let mostRelevantSection = null;
+                    let maxMatches = 0;
+                    
+                    squareHelpContent.articles.forEach(article => {
+                        const matches = searchTerms.filter(term => 
+                            article.content.toLowerCase().includes(term) ||
+                            article.title.toLowerCase().includes(term)
+                        ).length;
+                        
+                        if (matches > maxMatches) {
+                            maxMatches = matches;
+                            mostRelevantSection = article;
+                        }
+                    });
+                    
+                    if (mostRelevantSection) {
+                        sectionTitle = mostRelevantSection.title;
+                    }
+                }
+            }
+
+            // Generate contextual suggestion based on section and search query
             let suggestion = '';
-            if (searchQuery.toLowerCase().includes('verification') || searchQuery.toLowerCase().includes('avs')) {
-                suggestion = "For enhanced security, you can also enable real-time address verification checks that automatically validate the customer's billing address during the transaction process.";
-            } else if (searchQuery.toLowerCase().includes('rule') || searchQuery.toLowerCase().includes('condition')) {
-                suggestion = "You can create custom rules by combining multiple conditions, such as transaction amount thresholds with address verification results, to better target specific risk patterns.";
-            } else if (searchQuery.toLowerCase().includes('alert') || searchQuery.toLowerCase().includes('notification')) {
-                suggestion = "Configure instant notifications via email or SMS to receive immediate alerts when suspicious transactions match your defined risk criteria.";
+            const query = searchQuery.toLowerCase();
+            
+            // Section-specific suggestions
+            if (sectionTitle.includes("Payment velocity")) {
+                suggestion = `You can customize the velocity limits to ${
+                    query.includes("limit") ? "set specific transaction count thresholds" :
+                    query.includes("time") ? "define custom time windows for monitoring" :
+                    query.includes("alert") ? "receive notifications when limits are reached" :
+                    "monitor and control the frequency of transactions"
+                } based on your business needs.`;
+            } else if (sectionTitle.includes("Address Verification")) {
+                suggestion = `The Address Verification System (AVS) can be configured to ${
+                    query.includes("strict") ? "enforce strict matching requirements" :
+                    query.includes("international") ? "handle international billing addresses" :
+                    query.includes("bypass") ? "allow exceptions for trusted customers" :
+                    "validate billing addresses in real-time"
+                } during the transaction process.`;
+            } else if (sectionTitle.includes("CVV")) {
+                suggestion = `CVV verification can be ${
+                    query.includes("require") ? "made mandatory for all transactions" :
+                    query.includes("skip") ? "configured with exceptions for specific cases" :
+                    query.includes("fail") ? "set to decline transactions with invalid codes" :
+                    "customized based on transaction risk levels"
+                } to enhance payment security.`;
+            } else if (sectionTitle.includes("alert")) {
+                suggestion = `Risk alerts can be customized to ${
+                    query.includes("email") ? "send email notifications" :
+                    query.includes("immediate") ? "provide real-time notifications" :
+                    query.includes("multiple") ? "notify multiple team members" :
+                    "deliver notifications based on your preferences"
+                } when suspicious activity is detected.`;
+            } else if (sectionTitle.includes("rule")) {
+                suggestion = `Custom rules can be created to ${
+                    query.includes("combine") ? "combine multiple risk factors" :
+                    query.includes("automate") ? "automate response actions" :
+                    query.includes("threshold") ? "set specific trigger thresholds" :
+                    "enhance your fraud prevention strategy"
+                } based on your risk management needs.`;
             } else {
                 suggestion = "Consider implementing additional verification steps for transactions that meet specific risk criteria to enhance your fraud prevention strategy.";
             }
@@ -516,18 +599,24 @@
                 }
             });
 
-            // Display suggestion
+            // If no good paragraph match, use the first paragraph
+            if (!mostRelevantParagraph) {
+                mostRelevantParagraph = paragraphs[0];
+            }
+
+            // Display suggestion with improved context
             searchResults.innerHTML = `
                 <h3>Suggested Edit for "${sectionTitle}"</h3>
                 <div class="suggestion-content">
                     <div>
+                        <div class="suggestion-context">Current content in this section:</div>
                         <span class="original-text">${mostRelevantParagraph}</span>
                         <br><br>
-                        Suggested addition:<br>
+                        <div class="suggestion-context">Suggested addition based on your search "${searchQuery}":</div>
                         <span class="suggested-text">${suggestion}</span>
                     </div>
                     <div class="suggestion-explanation">
-                        This suggestion is based on your search for "${searchQuery}" and aims to provide additional relevant information about ${sectionTitle.toLowerCase()}.
+                        This suggestion is tailored for the ${sectionTitle.toLowerCase()} section and aims to provide specific information about your search topic.
                     </div>
                 </div>
             `;
