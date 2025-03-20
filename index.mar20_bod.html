@@ -5,16 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Content Compass</title>
     <style>
-        /* Previous styles remain the same */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #F5F7FA;
+            margin: 0;
+            padding: 20px;
+            color: #2C3E50;
+            line-height: 1.6;
+        }
 
-        /* Add button-group-top style */
+        .post-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            color: #2C3E50;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #2C3E50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            background-color: #FFFFFF;
+            box-sizing: border-box;
+            color: #2C3E50;
+            margin-bottom: 16px;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 8px;
+            padding-right: 30px;
+        }
+
         .button-group-top {
             display: flex;
             gap: 8px;
             margin-top: 12px;
         }
 
-        /* Add suggest-button style matching the existing design */
+        .search-button {
+            background-color: #3B82F6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
         .suggest-button {
             background-color: #8B5CF6;
             color: white;
@@ -25,7 +84,93 @@
             cursor: pointer;
         }
 
-        /* Previous styles continue... */
+        .search-summary {
+            border-left: 4px solid #3B82F6;
+            padding: 8px 12px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #2C3E50;
+            background-color: #F8FAFC;
+        }
+
+        .result-item {
+            padding: 20px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            background-color: #FFFFFF;
+        }
+
+        .result-section {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2C3E50;
+            margin-bottom: 12px;
+        }
+
+        .section {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+
+        .editable-content {
+            padding: 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 4px;
+            margin: 12px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 80px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .save-button {
+            background-color: #10B981;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .export-button {
+            background-color: #6B7280;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .save-status {
+            color: #10B981;
+            margin-left: 12px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .save-status.visible {
+            opacity: 1;
+        }
+
+        .search-term-highlight {
+            background-color: #FFF9C4;
+            padding: 2px 0;
+        }
+
+        [contenteditable="true"]:focus {
+            outline: none;
+            border-color: #3B82F6;
+        }
     </style>
 </head>
 <body>
@@ -42,7 +187,7 @@
 
         <div>
             <label>Search Your Topic</label>
-            <input type="text" class="form-control" id="searchTopic" placeholder="">
+            <input type="text" class="form-control" id="searchTopic" placeholder="address verification system">
             <div class="button-group-top">
                 <button class="search-button" id="searchButton">Search</button>
                 <button class="suggest-button" onclick="suggestEdits()">Suggest Edits</button>
@@ -53,7 +198,12 @@
     </div>
 
     <script>
-        // Previous code remains the same until we add the new functions
+        // Square Help content remains the same
+        const squareHelpContent = {
+            articles: [
+                // ... (keeping all the original articles)
+            ]
+        };
 
         function suggestEdits() {
             const searchQuery = document.getElementById('searchTopic').value.trim();
@@ -64,7 +214,7 @@
                 return;
             }
 
-            // Find most relevant section based on search query
+            // Find relevant section based on search query
             const relevantSection = findRelevantSection(searchQuery);
             if (!relevantSection) {
                 resultsDiv.innerHTML = '<div class="error-message">Could not find a relevant section for suggestions</div>';
@@ -74,12 +224,13 @@
             // Generate suggestion based on the query and section
             const suggestion = generateSuggestion(searchQuery, relevantSection);
 
-            // Display results in the same style as search results
+            // Display results in the original UI style
             resultsDiv.innerHTML = `
                 <h3>Search Results from Square Risk Manager Guide</h3>
                 <div class="search-summary">Found relevant section for suggestions</div>
                 <div class="result-item">
                     <div class="result-section">${relevantSection.title}</div>
+                    <div class="section">section</div>
                     <div class="editable-content" contenteditable="true" data-section="${relevantSection.title}">
                         ${relevantSection.content}
                         
@@ -88,19 +239,8 @@
                     </div>
                     <div class="button-group">
                         <button class="save-button" onclick="saveContent('${relevantSection.title}')">Save Changes</button>
-                        <button class="compare-button" onclick="compareContent('${relevantSection.title}')">Compare</button>
                         <button class="export-button" onclick="exportContent('${relevantSection.title}')">Export to Text</button>
                         <span class="save-status" id="save-status-${relevantSection.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
-                    </div>
-                    <div class="comparison-view" id="comparison-${relevantSection.title.replace(/[^a-zA-Z0-9]/g, '-')}">
-                        <div class="comparison-column">
-                            <h4>Original Version</h4>
-                            <div class="comparison-content original-version">${relevantSection.content}</div>
-                        </div>
-                        <div class="comparison-column">
-                            <h4>Edited Version</h4>
-                            <div class="comparison-content edited-version" id="edited-${relevantSection.title.replace(/[^a-zA-Z0-9]/g, '-')}">${relevantSection.content}</div>
-                        </div>
                     </div>
                 </div>
             `;
@@ -172,7 +312,100 @@
             return suggestion;
         }
 
-        // Previous functions remain the same...
+        function saveContent(sectionTitle) {
+            const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
+            if (contentDiv) {
+                const articleIndex = squareHelpContent.articles.findIndex(a => a.title === sectionTitle);
+                if (articleIndex !== -1) {
+                    squareHelpContent.articles[articleIndex].content = contentDiv.innerText;
+                    const saveStatus = document.getElementById(`save-status-${sectionTitle.replace(/[^a-zA-Z0-9]/g, '-')}`);
+                    saveStatus.classList.add('visible');
+                    setTimeout(() => {
+                        saveStatus.classList.remove('visible');
+                    }, 2000);
+                }
+            }
+        }
+
+        function exportContent(sectionTitle) {
+            const contentDiv = document.querySelector(`[data-section="${sectionTitle}"]`);
+            if (contentDiv) {
+                const content = contentDiv.innerText;
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${sectionTitle.toLowerCase().replace(/\s+/g, '-')}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            }
+        }
+
+        function handleSearch() {
+            const searchQuery = document.getElementById('searchTopic').value.trim();
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (!searchQuery) {
+                resultsDiv.innerHTML = '<div class="error-message">Please enter a search term</div>';
+                return;
+            }
+
+            const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
+            const searchResults = [];
+
+            squareHelpContent.articles.forEach(article => {
+                const matches = searchTerms.every(term => 
+                    article.content.toLowerCase().includes(term) ||
+                    article.title.toLowerCase().includes(term)
+                );
+
+                if (matches) {
+                    searchResults.push({
+                        title: article.title,
+                        content: article.content,
+                        type: article.type
+                    });
+                }
+            });
+
+            if (searchResults.length > 0) {
+                resultsDiv.innerHTML = `
+                    <h3>Search Results from Square Risk Manager Guide</h3>
+                    <div class="search-summary">Found ${searchResults.length} matching sections</div>
+                    ${searchResults.map(result => {
+                        let highlightedContent = result.content;
+                        let highlightedTitle = result.title;
+                        searchTerms.forEach(term => {
+                            const regex = new RegExp(`(${term})`, 'gi');
+                            highlightedContent = highlightedContent.replace(regex, '<span class="search-term-highlight">$1</span>');
+                            highlightedTitle = highlightedTitle.replace(regex, '<span class="search-term-highlight">$1</span>');
+                        });
+                        
+                        return `
+                            <div class="result-item">
+                                <div class="result-section">${highlightedTitle}</div>
+                                <div class="section">section</div>
+                                <div class="editable-content" contenteditable="true" data-section="${result.title}">${highlightedContent}</div>
+                                <div class="button-group">
+                                    <button class="save-button" onclick="saveContent('${result.title}')">Save Changes</button>
+                                    <button class="export-button" onclick="exportContent('${result.title}')">Export to Text</button>
+                                    <span class="save-status" id="save-status-${result.title.replace(/[^a-zA-Z0-9]/g, '-')}">Saved!</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                `;
+            } else {
+                resultsDiv.innerHTML = '<div class="no-results">No matching content found</div>';
+            }
+        }
+
+        document.getElementById('searchButton').addEventListener('click', handleSearch);
+        document.getElementById('searchTopic').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
     </script>
 </body>
 </html>
