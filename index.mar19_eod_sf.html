@@ -278,7 +278,7 @@
     <script>
         // Updated Square Help content with all sections from the page
          <script>
-    async function handleSearch() {
+   async function handleSearch() {
     const searchQuery = document.getElementById('searchTopic').value.trim();
     const selectedMarket = document.getElementById('market').value;
     const selectedLanguage = document.getElementById('language').value;
@@ -289,46 +289,37 @@
         return;
     }
 
-            // Show loading state
+    // Show loading state
     resultsDiv.innerHTML = '<div class="search-summary">Searching...</div>';
 
     try {
         // Construct the Snowflake query
-                const query = `
-                    SELECT NAME as TITLE, 
-                           SUPPORT_CENTER_URL, 
-                           CONTENTFUL_URL,
-                           BODY as CONTENT,
-                           ID as ARTICLE_ID
-                    FROM APP_SUPPORT.APP_SUPPORT.CDT_CONTENTFUL_CONTENT_V2 
-                    WHERE LOWER(HTML_REMOVED_BODY) ILIKE '%${searchQuery.toLowerCase()}%' 
-                    AND ARTICLE_OR_MACRO_IS_MOST_RECENT_VERSION = true 
-                    AND BODY_IS_MOST_RECENT_VERSION = true 
-                    AND COUNTRY_CODE = '${selectedMarket}' 
-                    AND LANGUAGE_CODE = '${selectedLanguage}' 
-                    AND PUBLISHED_STATUS = 'published' 
-                    AND CONTENT_TYPE = 'Article' 
-                    ORDER BY NAME
-                `;
-               const response = await fetch('/api/search', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            searchTerm: searchQuery,
-                            countryCode: selectedMarket,
-                            languageCode: selectedLanguage
-                        })
-                    });
+        const query = `
+            SELECT 
+                NAME as TITLE,
+                SUPPORT_CENTER_URL,
+                CONTENTFUL_URL,
+                BODY as CONTENT,
+                ID as ARTICLE_ID
+            FROM APP_SUPPORT.APP_SUPPORT.CDT_CONTENTFUL_CONTENT_V2 
+            WHERE LOWER(HTML_REMOVED_BODY) ILIKE '%${searchQuery.toLowerCase()}%'
+            AND ARTICLE_OR_MACRO_IS_MOST_RECENT_VERSION = true 
+            AND BODY_IS_MOST_RECENT_VERSION = true 
+            AND COUNTRY_CODE = '${selectedMarket}'
+            AND LANGUAGE_CODE = '${selectedLanguage}'
+            AND PUBLISHED_STATUS = 'published'
+            AND CONTENT_TYPE = 'Article'
+            ORDER BY NAME
+        `;
 
-                const data = await response.json();
+        // Execute the query using the Snowflake extension
+        const results = await snowflake.execute_query(query);
 
-            if (data.length > 0) {
+        if (results && results.length > 0) {
             resultsDiv.innerHTML = `
                 <h3>Search Results</h3>
-                <div class="search-summary">Found ${data.length} matching articles</div>
-                ${data.map(result => {
+                <div class="search-summary">Found ${results.length} matching articles</div>
+                ${results.map(result => {
                     // Highlight search terms in the content
                     let highlightedContent = result.CONTENT;
                     let highlightedTitle = result.TITLE;
@@ -376,7 +367,6 @@
         console.error('Search error:', error);
     }
 }
-
 // Updated compare function to work with article IDs
 function compareContent(articleId) {
     const comparisonView = document.getElementById(`comparison-${articleId}`);
