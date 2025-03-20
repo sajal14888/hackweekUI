@@ -464,21 +464,33 @@
                 return;
             }
 
-            // Define section keywords mapping
+            // Define section keywords mapping with more specific terms and weights
             const sectionKeywords = {
-                "Address Verification System (AVS) Overview": ["avs", "address", "verification", "billing address", "match"],
-                "Card Verification Value (CVV)": ["cvv", "card verification", "security code", "card code"],
-                "Payment velocity": ["velocity", "repeat", "transaction limit", "frequency", "multiple transactions"],
-                "Payment amount": ["amount", "threshold", "transaction size", "payment size", "dollar"],
-                "Prepaid payment cards": ["prepaid", "gift card", "gift cards", "non-traceable"],
-                "International payment cards": ["international", "country", "foreign", "cross-border"],
-                "Buyer IP address location": ["ip", "location", "geolocation", "country origin"],
-                "Shipping ZIP code verification": ["shipping", "zip", "postal", "address match"],
-                "View risk alerts": ["alert", "notification", "flag", "warning"],
-                "Set up alert notifications": ["notification", "email", "alert setup", "configure alerts"],
-                "Step 2: Create rules": ["rule", "condition", "create rule", "setup rule"],
-                "3D Secure (3DS)": ["3d", "3ds", "secure", "authentication"],
-                "Square's risk evaluation": ["risk", "evaluation", "fraud", "suspicious"]
+                "Payment velocity": {
+                    keywords: ["velocity", "repeat", "transaction limit", "frequency", "multiple transactions", "transactions in", "hour period", "same card", "transaction count"],
+                    primaryTerms: ["velocity", "transactions in", "hour period", "same card"],
+                    contextTerms: ["limit", "decline", "alert", "period", "threshold"]
+                },
+                "Address Verification System (AVS) Overview": {
+                    keywords: ["avs", "address", "verification", "billing address", "match"],
+                    primaryTerms: ["avs", "address verification"],
+                    contextTerms: ["billing", "match", "verify"]
+                },
+                "Card Verification Value (CVV)": {
+                    keywords: ["cvv", "card verification", "security code", "card code"],
+                    primaryTerms: ["cvv", "card verification"],
+                    contextTerms: ["security", "code", "digit"]
+                },
+                "Payment amount": {
+                    keywords: ["amount", "threshold", "transaction size", "payment size", "dollar"],
+                    primaryTerms: ["amount", "dollar", "payment size"],
+                    contextTerms: ["threshold", "limit", "minimum", "maximum"]
+                },
+                "View risk alerts": {
+                    keywords: ["alert", "notification", "flag", "warning"],
+                    primaryTerms: ["alert", "notification"],
+                    contextTerms: ["notify", "warning", "flag"]
+                }
             };
 
             // Find most relevant section based on search query
@@ -487,15 +499,37 @@
                 let bestMatchSection = null;
                 let bestMatchScore = 0;
 
-                for (const [section, keywords] of Object.entries(sectionKeywords)) {
+                for (const [section, keywordData] of Object.entries(sectionKeywords)) {
                     let score = 0;
-                    searchTerms.forEach(term => {
-                        // Direct keyword match
-                        if (keywords.some(keyword => keyword.includes(term))) {
-                            score += 2;
+                    
+                    // Check for primary terms (highest weight)
+                    keywordData.primaryTerms.forEach(term => {
+                        if (searchQuery.toLowerCase().includes(term.toLowerCase())) {
+                            score += 10;
                         }
-                        // Partial keyword match
-                        if (keywords.some(keyword => keyword.includes(term) || term.includes(keyword))) {
+                    });
+
+                    // Check for specific phrases that strongly indicate a section
+                    if (section === "Payment velocity" && 
+                        (searchQuery.toLowerCase().includes("transactions in") || 
+                         searchQuery.toLowerCase().includes("hour period") ||
+                         searchQuery.toLowerCase().includes("same card") ||
+                         (searchQuery.toLowerCase().includes("transaction") && searchQuery.toLowerCase().includes("period")))) {
+                        score += 15;
+                    }
+
+                    // Check for keyword matches
+                    keywordData.keywords.forEach(keyword => {
+                        searchTerms.forEach(term => {
+                            if (term.length > 3 && keyword.toLowerCase().includes(term.toLowerCase())) {
+                                score += 2;
+                            }
+                        });
+                    });
+
+                    // Check for context terms
+                    keywordData.contextTerms.forEach(term => {
+                        if (searchQuery.toLowerCase().includes(term.toLowerCase())) {
                             score += 1;
                         }
                     });
@@ -509,14 +543,13 @@
                 if (bestMatchSection) {
                     sectionTitle = bestMatchSection;
                 } else {
-                    // If no good keyword match, fall back to content search
+                    // Fallback to content search only if no good keyword match
                     let mostRelevantSection = null;
                     let maxMatches = 0;
                     
                     squareHelpContent.articles.forEach(article => {
                         const matches = searchTerms.filter(term => 
-                            article.content.toLowerCase().includes(term) ||
-                            article.title.toLowerCase().includes(term)
+                            article.content.toLowerCase().includes(term)
                         ).length;
                         
                         if (matches > maxMatches) {
@@ -535,14 +568,25 @@
             let suggestion = '';
             const query = searchQuery.toLowerCase();
             
-            // Section-specific suggestions
+            // Section-specific suggestions with more detailed pattern matching
             if (sectionTitle.includes("Payment velocity")) {
-                suggestion = `You can customize the velocity limits to ${
-                    query.includes("limit") ? "set specific transaction count thresholds" :
-                    query.includes("time") ? "define custom time windows for monitoring" :
-                    query.includes("alert") ? "receive notifications when limits are reached" :
-                    "monitor and control the frequency of transactions"
-                } based on your business needs.`;
+                // Extract numeric values from the query if present
+                const numberMatch = query.match(/\d+/);
+                const transactionCount = numberMatch ? numberMatch[0] : "specified number of";
+                const timeMatch = query.match(/(\d+)\s*(?:hour|hr|day)/);
+                const timeFrame = timeMatch ? timeMatch[0] : "24-hour";
+                
+                suggestion = query.includes("transactions") && query.includes("period") ?
+                    `You can set up a velocity rule to ${
+                        query.includes("decline") ? "automatically decline" : 
+                        query.includes("alert") ? "trigger an alert for" :
+                        "monitor"
+                    } when there are more than ${transactionCount} transactions within a ${timeFrame} period from the same payment card.` :
+                    `You can customize the velocity limits to monitor transaction frequency and ${
+                        query.includes("decline") ? "automatically decline excessive transactions" :
+                        query.includes("alert") ? "receive alerts for suspicious patterns" :
+                        "control transaction patterns"
+                    } based on your specified thresholds.`;
             } else if (sectionTitle.includes("Address Verification")) {
                 suggestion = `The Address Verification System (AVS) can be configured to ${
                     query.includes("strict") ? "enforce strict matching requirements" :
@@ -564,13 +608,6 @@
                     query.includes("multiple") ? "notify multiple team members" :
                     "deliver notifications based on your preferences"
                 } when suspicious activity is detected.`;
-            } else if (sectionTitle.includes("rule")) {
-                suggestion = `Custom rules can be created to ${
-                    query.includes("combine") ? "combine multiple risk factors" :
-                    query.includes("automate") ? "automate response actions" :
-                    query.includes("threshold") ? "set specific trigger thresholds" :
-                    "enhance your fraud prevention strategy"
-                } based on your risk management needs.`;
             } else {
                 suggestion = "Consider implementing additional verification steps for transactions that meet specific risk criteria to enhance your fraud prevention strategy.";
             }
